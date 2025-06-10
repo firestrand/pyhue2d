@@ -4,6 +4,6 @@ from .finder import FinderPatternGenerator
 from .alignment import AlignmentPatternGenerator
 
 __all__ = [
-    'FinderPatternGenerator',
-    'AlignmentPatternGenerator',
+    "FinderPatternGenerator",
+    "AlignmentPatternGenerator",
 ]

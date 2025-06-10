@@ -5,7 +5,7 @@ from .seed_config import RandomSeedConfig
 from .codec import LDPCCodec
 
 __all__ = [
-    'LDPCParameters',
-    'RandomSeedConfig',
-    'LDPCCodec',
+    "LDPCParameters",
+    "RandomSeedConfig",
+    "LDPCCodec",
 ]

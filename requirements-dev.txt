@@ -11,6 +11,7 @@ black>=22.0.0
 flake8>=5.0.0
 mypy>=1.0.0
 isort>=5.10.0
+types-pillow>=10.2.0
 
 # Documentation
 sphinx>=5.0.0

@@ -1,6 +1,6 @@
 """JABCode implementation package for PyHue2D.
 
-This package provides a complete Python implementation of the JABCode 
+This package provides a complete Python implementation of the JABCode
 (Just Another Bar Code) specification according to ISO/IEC 23634:2022.
 """
 
@@ -15,7 +15,7 @@ from . import ldpc
 
 __all__ = [
     "Symbol",
-    "Bitmap", 
+    "Bitmap",
     "EncodedData",
     "Point2D",
     "ColorPalette",

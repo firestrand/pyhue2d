@@ -17,7 +17,7 @@ from .detector import EncodingModeDetector
 __all__ = [
     "EncodingModeBase",
     "UppercaseMode",
-    "LowercaseMode", 
+    "LowercaseMode",
     "NumericMode",
     "PunctuationMode",
     "MixedMode",

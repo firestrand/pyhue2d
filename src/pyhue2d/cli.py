@@ -15,14 +15,20 @@ def main(argv=None) -> None:
     enc_parser = sub.add_parser(
         "encode", help="Encode data to a colour barcode (e.g. JAB Code)"
     )
-    enc_parser.add_argument("--input", required=True, help="Input file")
-    enc_parser.add_argument("--output", required=True, help="Output image path")
-    enc_parser.add_argument("--palette", type=int, default=8, help="Number of colours")
-    enc_parser.add_argument("--ecc-level", default="M", help="Error correction level")
-
-    dec_parser = sub.add_parser(
-        "decode", help="Decode a colour barcode image"
+    enc_parser.add_argument(
+        "--input", required=True, help="Input file"
     )
+    enc_parser.add_argument(
+        "--output", required=True, help="Output image path"
+    )
+    enc_parser.add_argument(
+        "--palette", type=int, default=8, help="Number of colours"
+    )
+    enc_parser.add_argument(
+        "--ecc-level", default="M", help="Error correction level"
+    )
+
+    dec_parser = sub.add_parser("decode", help="Decode a colour barcode image")
     dec_parser.add_argument("--input", required=True, help="Input image path")
 
     args = parser.parse_args(argv)
