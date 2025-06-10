@@ -10,6 +10,17 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [{name = "Travis Silvers"}]
+dependencies = [
+    "numpy>=1.24.0",
+    "Pillow>=9.0.0",
+    "typing-extensions>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/<username>/pyhue2d"
