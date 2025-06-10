@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyhue2d"
+version = "0.1.0"
+description = "Toolkit for colourful 2-D barcodes such as JAB Code"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [{name = "Travis Silvers"}]
+
+[project.urls]
+Homepage = "https://github.com/<username>/pyhue2d"
+Documentation = "https://github.com/<username>/pyhue2d"
+Repository = "https://github.com/<username>/pyhue2d"
+
+[project.scripts]
+pyhue2d = "pyhue2d.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
