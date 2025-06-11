@@ -24,6 +24,7 @@ These guidelines ensure code quality, maintainability, and extensibility for the
 - Use [Google-style docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) for all public APIs.
 - Each module must have a module-level docstring.
 - Imports: standard library, third-party, then local, each separated by a blank line.
+- **Settings for encoders and pipelines are immutable after initialization. To use different settings, create a new instance.**
 
 ## 4. Documentation
 - All public functions, classes, and modules must have clear docstrings.

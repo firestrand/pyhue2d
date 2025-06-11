@@ -14,8 +14,8 @@ class TestLDPCCodec:
         """Test that LDPCCodec can be created with parameters and seed config."""
         params = LDPCParameters(4, 2, "M")
         seed_config = RandomSeedConfig()
-        with pytest.raises(NotImplementedError):
-            LDPCCodec(params, seed_config)
+        codec = LDPCCodec(params, seed_config)
+        assert codec is not None
 
     def test_ldpc_codec_encode_bytes(self):
         """Test encoding bytes data."""
@@ -23,8 +23,8 @@ class TestLDPCCodec:
         seed_config = RandomSeedConfig()
         codec = LDPCCodec(params, seed_config)
         test_data = b"Hello, World!"
-        with pytest.raises(NotImplementedError):
-            codec.encode(test_data)
+        encoded = codec.encode(test_data)
+        assert isinstance(encoded, np.ndarray)
 
     def test_ldpc_codec_encode_numpy_array(self):
         """Test encoding numpy array data."""
@@ -32,8 +32,8 @@ class TestLDPCCodec:
         seed_config = RandomSeedConfig()
         codec = LDPCCodec(params, seed_config)
         test_data = np.array([1, 0, 1, 1, 0, 1, 0, 0], dtype=np.uint8)
-        with pytest.raises(NotImplementedError):
-            codec.encode(test_data)
+        encoded = codec.encode(test_data)
+        assert isinstance(encoded, np.ndarray)
 
     def test_ldpc_codec_decode_data(self):
         """Test decoding encoded data."""
@@ -42,8 +42,8 @@ class TestLDPCCodec:
         codec = LDPCCodec(params, seed_config)
         # Mock encoded data
         encoded_data = np.array([1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1], dtype=np.uint8)
-        with pytest.raises(NotImplementedError):
-            codec.decode(encoded_data)
+        decoded = codec.decode(encoded_data)
+        assert isinstance(decoded, bytes)
 
     def test_ldpc_codec_decode_with_max_iterations(self):
         """Test decoding with custom max iterations."""
@@ -51,8 +51,8 @@ class TestLDPCCodec:
         seed_config = RandomSeedConfig()
         codec = LDPCCodec(params, seed_config)
         encoded_data = np.array([1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1], dtype=np.uint8)
-        with pytest.raises(NotImplementedError):
-            codec.decode(encoded_data, max_iterations=100)
+        decoded = codec.decode(encoded_data, max_iterations=100)
+        assert isinstance(decoded, bytes)
 
 
 class TestLDPCCodecImplementation:
@@ -114,8 +114,16 @@ class TestLDPCCodecImplementation:
         original_data = np.array([1, 0, 1, 1, 0, 1, 0, 0, 1, 1], dtype=np.uint8)
         encoded = codec.encode(original_data)
         decoded_bytes = codec.decode(encoded)
-        # Convert back to numpy for comparison
-        decoded_data = np.frombuffer(decoded_bytes, dtype=np.uint8)
+        
+        # For numpy arrays treated as bit arrays, we need to unpack the bytes
+        # back to bits to compare with the original
+        if len(decoded_bytes) > 0:
+            decoded_bits = np.unpackbits(np.frombuffer(decoded_bytes, dtype=np.uint8))
+            # Take only the number of bits we originally had
+            decoded_data = decoded_bits[:len(original_data)]
+        else:
+            decoded_data = np.array([], dtype=np.uint8)
+        
         np.testing.assert_array_equal(original_data, decoded_data)
 
     def test_codec_encode_empty_data(self, codec):

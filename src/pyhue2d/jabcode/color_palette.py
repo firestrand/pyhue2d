@@ -24,15 +24,18 @@ class ColorPalette:
             colors: Custom list of RGB tuples, overrides color_count
         """
         if colors is not None:
-            self._validate_custom_colors(colors)
+            if not isinstance(colors, list):
+                raise ValueError("Colors must be a list of RGB tuples")
             self.colors = colors.copy()
             self.color_count = len(colors)
+            self._validate_custom_colors(colors)
         else:
             if color_count is None:
                 color_count = 8  # Default
-            self._validate_color_count(color_count)
             self.color_count = color_count
             self.colors = get_color_palette(color_count)
+            self._validate_color_count(color_count)
+
 
     def _validate_color_count(self, color_count: int) -> None:
         """Validate color count is supported."""

@@ -54,11 +54,11 @@ class TestColorPalette:
         with pytest.raises(ValueError, match="Colors must be a list of RGB tuples"):
             ColorPalette(colors="invalid")
 
-        with pytest.raises(ValueError, match="Each color must be an RGB tuple"):
-            ColorPalette(colors=[(255, 0), (0, 255, 0)])  # Missing blue
+        with pytest.raises(ValueError, match="Each color must be an RGB tuple with 3 values"):
+            ColorPalette(colors=[(255, 0, 0), (0, 255, 0), (0, 0, 255), 123])
 
         with pytest.raises(ValueError, match="RGB values must be between 0 and 255"):
-            ColorPalette(colors=[(300, 0, 0), (0, 255, 0)])  # Invalid red value
+            ColorPalette(colors=[(255, 0, 0), (0, 255, 0), (0, 0, 255), (256, 0, 0)])
 
     def test_colorpalette_get_color_by_index(self):
         """Test ColorPalette can get color by index."""

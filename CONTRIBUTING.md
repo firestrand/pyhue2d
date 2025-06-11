@@ -41,6 +41,8 @@ Thank you for your interest in contributing to PyHue2D! We welcome bug reports, 
    isort src/ tests/
    ```
 
+**Note:** Encoder and pipeline settings are immutable after initialization. To use different settings, create a new instance.
+
 ---
 
 ## ✏️ Making Changes
@@ -55,6 +57,7 @@ Thank you for your interest in contributing to PyHue2D! We welcome bug reports, 
 - Follow [CODING_GUIDELINES.md](CODING_GUIDELINES.md) for style, structure, and documentation.
 - Add or update tests for all new features and bug fixes.
 - Update documentation as needed.
+- **Do not mutate encoder or pipeline settings after construction; always create a new instance for different configurations.**
 
 ---
 
