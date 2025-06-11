@@ -42,6 +42,7 @@ class EncodingPipeline:
         'max_data_size': 32768,  # 32KB max for encoding
         'master_symbol': True,
         'quiet_zone': 2,  # Modules of quiet zone around symbol
+        'mask_pattern': 7,  # JABCode reference default mask pattern
     }
     
     def __init__(self, settings: Optional[Dict[str, Any]] = None):
@@ -413,7 +414,11 @@ class EncodingPipeline:
                     for j, bit in enumerate(symbol_bits):
                         color_index += bit * (2 ** (bits_per_symbol - 1 - j))
                     
-                    matrix[y, x] = color_index
+                    # Apply mask pattern (JABCode reference default is pattern 7)
+                    mask_value = self._calculate_mask_value(x, y, self.settings['mask_pattern'], color_levels)
+                    masked_color_index = color_index ^ mask_value
+                    
+                    matrix[y, x] = masked_color_index
                     bit_index += bits_per_symbol
                 else:
                     break
@@ -435,6 +440,38 @@ class EncodingPipeline:
             'color_encoding': 'indexed'
         }
     
+    def _calculate_mask_value(self, x: int, y: int, mask_pattern: int, color_count: int) -> int:
+        """Calculate mask value for a module position.
+        
+        Based on JABCode reference implementation's 8 mask patterns.
+        
+        Args:
+            x, y: Module coordinates
+            mask_pattern: Mask pattern index (0-7)
+            color_count: Number of colors
+            
+        Returns:
+            Mask value to XOR with color index
+        """
+        if mask_pattern == 0:
+            return (x + y) % color_count
+        elif mask_pattern == 1:
+            return x % color_count
+        elif mask_pattern == 2:
+            return y % color_count
+        elif mask_pattern == 3:
+            return (x + y) % 3 % color_count
+        elif mask_pattern == 4:
+            return (x // 2 + y // 3) % color_count
+        elif mask_pattern == 5:
+            return ((x * y) % 2 + (x * y) % 3) % color_count
+        elif mask_pattern == 6:
+            return ((x * x * y) % 7 + (2 * x * x + 2 * y) % 19) % color_count
+        elif mask_pattern == 7:
+            return ((x + y) % 7 + (x * y) % 13) % color_count
+        else:
+            return 0
+
     def _add_quiet_zone(self, matrix: np.ndarray, quiet_zone: int) -> np.ndarray:
         """Add quiet zone around the symbol."""
         if quiet_zone <= 0:

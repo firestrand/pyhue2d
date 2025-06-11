@@ -38,9 +38,9 @@ class LDPCParameters:
         Returns:
             Code rate as a float between 0 and 1
         """
-        # Simplified code rate calculation
-        # In practice, this would depend on the specific LDPC matrix construction
-        return 1.0 - (self.wr / self.wc)
+        # JABCode reference implementation code rate calculation
+        # From the net capacity formula: (wr - wc) / wr
+        return (self.wr - self.wc) / self.wr
 
     def get_parity_ratio(self) -> float:
         """Calculate the parity to data ratio.
@@ -83,10 +83,12 @@ class LDPCParameters:
             True if the configuration is theoretically valid
         """
         # Basic validity checks
-        if self.wc <= self.wr:
-            return False  # Column weight should be greater than row weight
+        # In JABCode reference: wr (row weight) >= wc (column weight)
+        # This ensures positive code rate: (wr - wc) / wr >= 0
+        if self.wc > self.wr:
+            return False  # Column weight should not exceed row weight
 
-        if self.get_code_rate() <= 0 or self.get_code_rate() >= 1:
+        if self.get_code_rate() < 0 or self.get_code_rate() >= 1:
             return False  # Code rate should be between 0 and 1
 
         return True
@@ -120,12 +122,17 @@ class LDPCParameters:
         Returns:
             LDPCParameters optimized for the ECC level
         """
-        # Standard configurations for each ECC level
+        # JABCode reference implementation parameters
+        # Based on ecclevel2wcwr[11][2] from encoder.h:
+        # Level 0: {4,9}, Level 1: {3,8}, Level 2: {3,7}, Level 3: {4,9}
+        # Level 4: {3,6}, Level 5: {4,7}, Level 6: {4,6}, Level 7: {3,4}
+        # Level 8: {4,5}, Level 9: {5,6}, Level 10: {6,7}
+        
         ecc_configs = {
-            "L": (4, 2),  # Low error correction
-            "M": (6, 3),  # Medium error correction
-            "Q": (8, 4),  # Quartile error correction
-            "H": (10, 5),  # High error correction
+            "L": (4, 9),   # Low error correction (level 0, code rate 0.55)
+            "M": (4, 9),   # Medium error correction (level 3, code rate 0.55) - JABCode default
+            "Q": (3, 6),   # Quartile error correction (level 4, code rate 0.50)
+            "H": (3, 4),   # High error correction (level 7, code rate 0.25)
         }
 
         if ecc_level not in ecc_configs:
