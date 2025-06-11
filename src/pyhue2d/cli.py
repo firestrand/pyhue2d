@@ -37,14 +37,35 @@ def main(argv=None) -> None:
         try:
             with open(args.input, "rb") as fh:
                 payload = fh.read()
-            encode(payload, colors=args.palette, ecc_level=args.ecc_level)
-        except NotImplementedError as exc:
-            parser.error(str(exc))
+            image = encode(payload, colors=args.palette, ecc_level=args.ecc_level)
+            image.save(args.output)
+            print(f"✅ Successfully encoded '{args.input}' to '{args.output}'")
+            print(f"   Image size: {image.size}")
+            print(f"   Colors: {args.palette}, ECC: {args.ecc_level}")
+        except FileNotFoundError:
+            parser.error(f"Input file '{args.input}' not found")
+        except Exception as exc:
+            parser.error(f"Encoding failed: {exc}")
     elif args.command == "decode":
         try:
-            decode(args.input)
-        except NotImplementedError as exc:
-            parser.error(str(exc))
+            decoded_data = decode(args.input)
+            print(f"✅ Successfully decoded '{args.input}'")
+            print(f"   Data length: {len(decoded_data)} bytes")
+            
+            # Try to decode as text if possible
+            try:
+                text = decoded_data.decode('utf-8')
+                if text.isprintable():
+                    print(f"   Content: {text}")
+                else:
+                    print(f"   Content: <binary data>")
+            except UnicodeDecodeError:
+                print(f"   Content: <binary data>")
+                
+        except FileNotFoundError:
+            parser.error(f"Input file '{args.input}' not found")
+        except Exception as exc:
+            parser.error(f"Decoding failed: {exc}")
     else:
         parser.print_help()
 

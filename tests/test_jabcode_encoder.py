@@ -367,11 +367,12 @@ class TestJABCodeEncoderImplementation:
         assert result.metadata['ecc_level'] in ['L', 'M', 'Q', 'H']
 
 @pytest.mark.parametrize("example", EXAMPLES)
-@pytest.mark.xfail(reason="JABCodeEncoder.encode not yet implemented.")
 def test_jabcode_encoder_encode_manifest(example):
+    """Test that JABCodeEncoder can encode manifest examples."""
     encoder = JABCodeEncoder()
-    with pytest.raises(NotImplementedError):
-        encoder.encode(example["text"])
+    result = encoder.encode(example["text"])
+    assert isinstance(result, EncodedData)
+    assert result.get_size() > 0
 
 # If a decode method exists on JABCodeEncoder, add a similar test for decode
 if hasattr(JABCodeEncoder, 'decode'):

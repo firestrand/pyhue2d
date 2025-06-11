@@ -419,11 +419,12 @@ class TestEncodingPipelineImplementation:
         assert result1.metadata != result2.metadata
 
 @pytest.mark.parametrize("example", EXAMPLES)
-@pytest.mark.xfail(reason="EncodingPipeline.encode not yet implemented.")
 def test_encoding_pipeline_encode_manifest(example):
+    """Test that EncodingPipeline can encode manifest examples."""
     pipeline = EncodingPipeline()
-    with pytest.raises(NotImplementedError):
-        pipeline.encode(example["text"])
+    result = pipeline.encode(example["text"])
+    assert isinstance(result, EncodedData)
+    assert result.get_size() > 0
 
 # If a decode method exists on EncodingPipeline, add a similar test for decode
 if hasattr(EncodingPipeline, 'decode'):
