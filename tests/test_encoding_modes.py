@@ -1,16 +1,17 @@
 """Tests for encoding modes."""
 
 import pytest
+
 from pyhue2d.jabcode.encoding_modes import (
-    EncodingModeBase,
-    UppercaseMode,
-    LowercaseMode,
-    NumericMode,
-    PunctuationMode,
-    MixedMode,
     AlphanumericMode,
     ByteMode,
+    EncodingModeBase,
     EncodingModeDetector,
+    LowercaseMode,
+    MixedMode,
+    NumericMode,
+    PunctuationMode,
+    UppercaseMode,
 )
 
 

@@ -196,3 +196,11 @@ cython_debug/
 # Project specific
 TODO.md
 .DS_Store
+
+# Debugging and temporary files
+debug_comparison/
+encoder_validation_output/
+analysis_*.png
+debug_*.png
+test_*.png
+*.tmp

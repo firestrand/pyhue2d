@@ -1,12 +1,9 @@
 """Tests for SymbolVersionCalculator class."""
 
 import pytest
+
+from pyhue2d.jabcode.constants import ECC_LEVELS, MAX_SYMBOL_VERSIONS, SUPPORTED_COLOR_COUNTS
 from pyhue2d.jabcode.version_calculator import SymbolVersionCalculator
-from pyhue2d.jabcode.constants import (
-    MAX_SYMBOL_VERSIONS,
-    ECC_LEVELS,
-    SUPPORTED_COLOR_COUNTS,
-)
 
 
 class TestSymbolVersionCalculator:
@@ -107,9 +104,7 @@ class TestSymbolVersionCalculator:
         for version in [1, 5, 10]:
             for color_count in [4, 8, 16]:
                 for ecc_level in ["L", "M", "H"]:
-                    capacity = calculator.get_data_capacity(
-                        version, color_count, ecc_level
-                    )
+                    capacity = calculator.get_data_capacity(version, color_count, ecc_level)
                     assert isinstance(capacity, int)
                     assert capacity > 0
 
@@ -292,6 +287,4 @@ class TestSymbolVersionCalculatorImplementation:
         version = calculator.calculate_version(data_size, color_count, ecc_level)
         capacity = calculator.get_data_capacity(version, color_count, ecc_level)
 
-        assert (
-            capacity >= data_size
-        ), "Calculated version should have sufficient capacity"
+        assert capacity >= data_size, "Calculated version should have sufficient capacity"

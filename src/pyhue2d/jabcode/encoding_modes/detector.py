@@ -1,14 +1,15 @@
 """Encoding mode detector for optimal mode selection."""
 
 from typing import List, Tuple
+
+from .alphanumeric import AlphanumericMode
 from .base import EncodingModeBase
-from .uppercase import UppercaseMode
+from .byte import ByteMode
 from .lowercase import LowercaseMode
+from .mixed import MixedMode
 from .numeric import NumericMode
 from .punctuation import PunctuationMode
-from .mixed import MixedMode
-from .alphanumeric import AlphanumericMode
-from .byte import ByteMode
+from .uppercase import UppercaseMode
 
 
 class EncodingModeDetector:
@@ -17,13 +18,13 @@ class EncodingModeDetector:
     def __init__(self):
         """Initialize mode detector with all available modes."""
         self.modes = [
+            NumericMode(),
             UppercaseMode(),
             LowercaseMode(),
-            NumericMode(),
-            PunctuationMode(),
-            MixedMode(),
             AlphanumericMode(),
+            MixedMode(),
             ByteMode(),
+            PunctuationMode(),
         ]
 
     def detect_best_mode(self, text: str) -> EncodingModeBase:
@@ -42,6 +43,10 @@ class EncodingModeDetector:
         best_efficiency = -1.0
 
         for mode in self.modes:
+            # Skip Punctuation if the string also contains letters or digits
+            if isinstance(mode, PunctuationMode) and any(c.isalpha() or c.isdigit() for c in text):
+                continue
+
             if mode.can_encode(text):
                 efficiency = mode.get_efficiency(text)
                 # Prefer specialized modes over general ones
@@ -125,3 +130,7 @@ class EncodingModeDetector:
             List of all encoding modes
         """
         return self.modes.copy()
+
+    def detect_optimal_mode(self, text: str):
+        """Alias maintained for backward compatibility with test suite."""
+        return self.detect_best_mode(text)

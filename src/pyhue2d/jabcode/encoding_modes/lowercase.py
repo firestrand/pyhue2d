@@ -1,7 +1,7 @@
 """Lowercase encoding mode."""
 
-from .base import EncodingModeBase
 from ..constants import LOWERCASE_CHARS
+from .base import EncodingModeBase
 
 
 class LowercaseMode(EncodingModeBase):
@@ -19,9 +19,7 @@ class LowercaseMode(EncodingModeBase):
     def encode(self, text: str) -> bytes:
         """Encode lowercase text to bytes."""
         if not self.can_encode(text):
-            raise ValueError(
-                f"Text contains characters not supported by {self.name} mode"
-            )
+            raise ValueError(f"Text contains characters not supported by {self.name} mode")
 
         result = []
         for char in text:

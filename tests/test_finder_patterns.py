@@ -1,9 +1,10 @@
 """Tests for FinderPatternGenerator class."""
 
-import pytest
 import numpy as np
-from pyhue2d.jabcode.patterns.finder import FinderPatternGenerator
+import pytest
+
 from pyhue2d.jabcode.constants import FinderPatternType
+from pyhue2d.jabcode.patterns.finder import FinderPatternGenerator
 
 
 class TestFinderPatternGenerator:

@@ -4,8 +4,8 @@ This package provides the complete data processing pipeline for JABCode encoding
 and decoding, orchestrating all the individual components into a cohesive workflow.
 """
 
-from .processor import DataProcessor
 from .encoding import EncodingPipeline
+from .processor import DataProcessor
 
 __all__ = [
     "DataProcessor",

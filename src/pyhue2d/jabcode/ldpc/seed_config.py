@@ -1,8 +1,9 @@
 """Random seed configuration for JABCode LDPC generation."""
 
 import random
-from typing import Dict, Any, Iterator
-from ..constants import LDPC_METADATA_SEED, LDPC_MESSAGE_SEED
+from typing import Any, Dict, Iterator
+
+from ..constants import LDPC_MESSAGE_SEED, LDPC_METADATA_SEED
 
 
 class RandomSeedConfig:
@@ -28,9 +29,7 @@ class RandomSeedConfig:
         """
         # Validate metadata seed
         if not isinstance(metadata_seed, int) or metadata_seed <= 0:
-            raise ValueError(
-                f"Metadata seed must be a positive integer: {metadata_seed}"
-            )
+            raise ValueError(f"Metadata seed must be a positive integer: {metadata_seed}")
 
         # Validate message seed
         if not isinstance(message_seed, int) or message_seed <= 0:
@@ -133,10 +132,7 @@ class RandomSeedConfig:
         """Check equality with another seed configuration."""
         if not isinstance(other, RandomSeedConfig):
             return NotImplemented
-        return (
-            self.metadata_seed == other.metadata_seed
-            and self.message_seed == other.message_seed
-        )
+        return self.metadata_seed == other.metadata_seed and self.message_seed == other.message_seed
 
     def __hash__(self) -> int:
         """Get hash value for use in sets and dictionaries."""
@@ -148,10 +144,7 @@ class RandomSeedConfig:
 
     def __repr__(self) -> str:
         """Detailed string representation."""
-        return (
-            f"RandomSeedConfig(metadata_seed={self.metadata_seed}, "
-            f"message_seed={self.message_seed})"
-        )
+        return f"RandomSeedConfig(metadata_seed={self.metadata_seed}, " f"message_seed={self.message_seed})"
 
     @classmethod
     def create_default(cls) -> "RandomSeedConfig":
@@ -168,7 +161,4 @@ class RandomSeedConfig:
         Returns:
             True if using default JABCode specification seeds
         """
-        return (
-            self.metadata_seed == LDPC_METADATA_SEED
-            and self.message_seed == LDPC_MESSAGE_SEED
-        )
+        return self.metadata_seed == LDPC_METADATA_SEED and self.message_seed == LDPC_MESSAGE_SEED

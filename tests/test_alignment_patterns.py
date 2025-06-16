@@ -1,9 +1,10 @@
 """Tests for AlignmentPatternGenerator class."""
 
-import pytest
 import numpy as np
-from pyhue2d.jabcode.patterns.alignment import AlignmentPatternGenerator
+import pytest
+
 from pyhue2d.jabcode.constants import AlignmentPatternType
+from pyhue2d.jabcode.patterns.alignment import AlignmentPatternGenerator
 
 
 class TestAlignmentPatternGenerator:

@@ -64,6 +64,10 @@ class EncodingModeBase(ABC):
         """
         pass
 
+    def calculate_efficiency(self, text: str) -> float:
+        """Alias for get_efficiency to maintain backward compatibility with older tests."""
+        return self.get_efficiency(text)
+
     def __repr__(self) -> str:
         """String representation of encoding mode."""
         return f"{self.__class__.__name__}(mode_id={self.mode_id}, name='{self.name}')"

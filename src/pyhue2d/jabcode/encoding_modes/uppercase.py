@@ -1,7 +1,7 @@
 """Uppercase encoding mode."""
 
-from .base import EncodingModeBase
 from ..constants import UPPERCASE_CHARS
+from .base import EncodingModeBase
 
 
 class UppercaseMode(EncodingModeBase):
@@ -19,9 +19,7 @@ class UppercaseMode(EncodingModeBase):
     def encode(self, text: str) -> bytes:
         """Encode uppercase text to bytes."""
         if not self.can_encode(text):
-            raise ValueError(
-                f"Text contains characters not supported by {self.name} mode"
-            )
+            raise ValueError(f"Text contains characters not supported by {self.name} mode")
 
         # Simple encoding: map each character to its index in charset
         result = []

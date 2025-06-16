@@ -14,6 +14,7 @@
 
 * 📦 **Encode** text or binary data to colourful 2‑D symbols like JAB Code (PNG/SVG output).
 * 🔍 **Decode** images back to bytes, with automatic white‑balance & colour calibration.
+* 🏗️ **Multi-symbol support** for large data payloads with grid-based symbol arrangements.
 * 🛠️ **CLI** utilities (`pyhue2d encode / decode`) for seamless shell workflows.
 * ⚡ **Pluggable back‑ends** with a pure‑Python reference and room for optional accelerators.
 * 🌈 **Extensible** design ready for future colour QR, HiQ, or custom palettes.
@@ -65,9 +66,54 @@ Comprehensive docs live in the [docs](docs/) directory, including an API referen
 
 ---
 
+## 🧪 Validation & Testing
+
+PyHue2D includes comprehensive validation scripts to ensure decoder accuracy and encoder compatibility:
+
+### Decoder Validation
+Test the decoder against reference JABCode examples:
+```bash
+# Validate decoder against all reference examples
+python utility_scripts/validation/validate_all_examples.py
+
+# Current status: 100% decode success rate across 15 examples
+# Includes multi-symbol JABCode images up to 2052x3420 pixels
+```
+
+### Round-Trip Testing
+Verify encode/decode compatibility:
+```bash
+# Run comprehensive round-trip tests
+pytest tests/test_round_trip.py -v
+
+# Tests various data types, color palettes (4-32), and error correction levels
+# Current status: 18/19 tests passing (95% success rate)
+```
+
+### Encoder Validation
+Compare encoder output with reference implementations:
+```bash
+# Validate encoder produces reference-compatible images
+python utility_scripts/validation/validate_encoder_output.py
+
+# Verifies size matching and structural compliance
+```
+
+### Development Utilities
+Additional analysis and debugging tools are available in `utility_scripts/`:
+- `validation/` - Decoder and encoder validation scripts
+- `analysis/` - Implementation comparison and analysis tools
+- `debug/` - Visualization and debugging utilities
+- `encoding/` - JABCode data encoding utilities
+
+---
+
 ## 🗺️ Roadmap
 
-* [ ] JAB Code level-H and multi-symbol streams
+* [x] JAB Code encoder/decoder with multi-symbol support
+* [x] Error correction levels L, M, Q, H with 4-32 color palettes
+* [x] Multi-symbol JABCode decoding for large data payloads
+* [ ] Improved text reconstruction pipeline for perfect round-trip accuracy
 * [ ] HiQ Color-QR encoder/decoder
 * [ ] Real-time video streaming (MemVid-style) API
 * [ ] WebAssembly build for browser decoding

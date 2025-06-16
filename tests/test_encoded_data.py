@@ -1,6 +1,7 @@
 """Tests for EncodedData class."""
 
 import pytest
+
 from pyhue2d.jabcode.core import EncodedData
 
 

@@ -5,13 +5,12 @@ and decoding, including rotation, flipping, pattern application, and more.
 """
 
 from typing import List, Tuple
+
 import numpy as np
 from PIL import Image
 
 
-def create_matrix(
-    height: int, width: int, fill_value: int = 0, dtype: type = np.uint8
-) -> np.ndarray:
+def create_matrix(height: int, width: int, fill_value: int = 0, dtype: type = np.uint8) -> np.ndarray:
     """Create a matrix filled with specified value.
 
     Args:
@@ -66,9 +65,7 @@ def flip_matrix_vertical(matrix: np.ndarray) -> np.ndarray:
     return np.flipud(matrix)
 
 
-def extract_submatrix(
-    matrix: np.ndarray, start_row: int, start_col: int, height: int, width: int
-) -> np.ndarray:
+def extract_submatrix(matrix: np.ndarray, start_row: int, start_col: int, height: int, width: int) -> np.ndarray:
     """Extract submatrix from matrix.
 
     Args:
@@ -87,20 +84,13 @@ def extract_submatrix(
     end_row = start_row + height
     end_col = start_col + width
 
-    if (
-        start_row < 0
-        or start_col < 0
-        or end_row > matrix.shape[0]
-        or end_col > matrix.shape[1]
-    ):
+    if start_row < 0 or start_col < 0 or end_row > matrix.shape[0] or end_col > matrix.shape[1]:
         raise ValueError("Submatrix extends beyond matrix bounds")
 
     return matrix[start_row:end_row, start_col:end_col].copy()
 
 
-def place_submatrix(
-    matrix: np.ndarray, submatrix: np.ndarray, start_row: int, start_col: int
-) -> np.ndarray:
+def place_submatrix(matrix: np.ndarray, submatrix: np.ndarray, start_row: int, start_col: int) -> np.ndarray:
     """Place submatrix into matrix at specified position.
 
     Args:
@@ -120,12 +110,7 @@ def place_submatrix(
     end_row = start_row + sub_height
     end_col = start_col + sub_width
 
-    if (
-        start_row < 0
-        or start_col < 0
-        or end_row > matrix.shape[0]
-        or end_col > matrix.shape[1]
-    ):
+    if start_row < 0 or start_col < 0 or end_row > matrix.shape[0] or end_col > matrix.shape[1]:
         raise ValueError("Submatrix extends beyond matrix bounds")
 
     result[start_row:end_row, start_col:end_col] = submatrix
@@ -235,9 +220,7 @@ def resize_matrix(matrix: np.ndarray, new_height: int, new_width: int) -> np.nda
         return np.array(resized_pil, dtype=matrix.dtype)
 
 
-def find_pattern_in_matrix(
-    matrix: np.ndarray, pattern: np.ndarray
-) -> List[Tuple[int, int]]:
+def find_pattern_in_matrix(matrix: np.ndarray, pattern: np.ndarray) -> List[Tuple[int, int]]:
     """Find all occurrences of pattern in matrix.
 
     Args:

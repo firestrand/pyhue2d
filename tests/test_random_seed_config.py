@@ -1,8 +1,9 @@
 """Tests for RandomSeedConfig class."""
 
 import pytest
+
+from pyhue2d.jabcode.constants import LDPC_MESSAGE_SEED, LDPC_METADATA_SEED
 from pyhue2d.jabcode.ldpc.seed_config import RandomSeedConfig
-from pyhue2d.jabcode.constants import LDPC_METADATA_SEED, LDPC_MESSAGE_SEED
 
 
 class TestRandomSeedConfig:
@@ -134,9 +135,7 @@ class TestRandomSeedConfigImplementation:
 
     def test_seed_config_generators_are_different(self, seed_config):
         """Test that metadata and message generators produce different sequences."""
-        if hasattr(seed_config, "get_metadata_generator") and hasattr(
-            seed_config, "get_message_generator"
-        ):
+        if hasattr(seed_config, "get_metadata_generator") and hasattr(seed_config, "get_message_generator"):
             meta_gen = seed_config.get_metadata_generator()
             msg_gen = seed_config.get_message_generator()
 
@@ -148,9 +147,7 @@ class TestRandomSeedConfigImplementation:
 
     def test_seed_config_reset_generators(self, seed_config):
         """Test that generators can be reset to initial state."""
-        if hasattr(seed_config, "get_metadata_generator") and hasattr(
-            seed_config, "reset_generators"
-        ):
+        if hasattr(seed_config, "get_metadata_generator") and hasattr(seed_config, "reset_generators"):
             gen1 = seed_config.get_metadata_generator()
             first_vals = [next(gen1) for _ in range(5)]
 

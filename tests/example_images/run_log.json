@@ -1,0 +1,242 @@
+[
+  {
+    "timestamp": "2025-06-15T07:18:21.439335",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input 'Hello, JAB Code!' --output output_examples/example1.png",
+    "output_file": "output_examples/example1.png",
+    "input_text": "Hello, JAB Code!",
+    "jabcode_args": "--input 'Hello, JAB Code!' --output output_examples/example1.png",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": true,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:21.448323",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input 'Testing 123' --output output_examples/example2.png",
+    "output_file": "output_examples/example2.png",
+    "input_text": "Testing 123",
+    "jabcode_args": "--input 'Testing 123' --output output_examples/example2.png",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": true,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:21.457411",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input https://jabcode.org --output output_examples/example3.png",
+    "output_file": "output_examples/example3.png",
+    "input_text": "https://jabcode.org",
+    "jabcode_args": "--input https://jabcode.org --output output_examples/example3.png",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": true,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:21.466230",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input 'Ported library test' --output output_examples/example4.png",
+    "output_file": "output_examples/example4.png",
+    "input_text": "Ported library test",
+    "jabcode_args": "--input 'Ported library test' --output output_examples/example4.png",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": true,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:21.474835",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input 'Colorful 2D barcode' --output output_examples/example5.png",
+    "output_file": "output_examples/example5.png",
+    "input_text": "Colorful 2D barcode",
+    "jabcode_args": "--input 'Colorful 2D barcode' --output output_examples/example5.png",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": true,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:21.485627",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input A --output output_examples/minimum_text.png",
+    "output_file": "output_examples/minimum_text.png",
+    "input_text": "A",
+    "jabcode_args": "--input A --output output_examples/minimum_text.png",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": true,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:21.689846",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input-file output_examples/max_text.txt --output output_examples/maximum_text.png --symbol-number 10 --symbol-position 0 1 2 3 4 5 6 7 8 9 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10",
+    "output_file": "output_examples/maximum_text.png",
+    "input_text": "A (repeated 10,000 times)",
+    "jabcode_args": "--input-file output_examples/max_text.txt --output output_examples/maximum_text.png --symbol-number 10 --symbol-position 0 1 2 3 4 5 6 7 8 9 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": false,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:21.795616",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_2.png --symbol-number 2 --symbol-position 0 1 --symbol-version 10 10 10 10",
+    "output_file": "output_examples/multi_block_2.png",
+    "input_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "jabcode_args": "--input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_2.png --symbol-number 2 --symbol-position 0 1 --symbol-version 10 10 10 10",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": false,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:21.979728",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_3.png --symbol-number 3 --symbol-position 0 1 2 --symbol-version 10 10 10 10 10 10",
+    "output_file": "output_examples/multi_block_3.png",
+    "input_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "jabcode_args": "--input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_3.png --symbol-number 3 --symbol-position 0 1 2 --symbol-version 10 10 10 10 10 10",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": false,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:22.249719",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_4.png --symbol-number 4 --symbol-position 0 1 2 3 --symbol-version 10 10 10 10 10 10 10 10",
+    "output_file": "output_examples/multi_block_4.png",
+    "input_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "jabcode_args": "--input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_4.png --symbol-number 4 --symbol-position 0 1 2 3 --symbol-version 10 10 10 10 10 10 10 10",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": false,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:22.608329",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_5.png --symbol-number 5 --symbol-position 0 1 2 3 4 --symbol-version 10 10 10 10 10 10 10 10 10 10",
+    "output_file": "output_examples/multi_block_5.png",
+    "input_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "jabcode_args": "--input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_5.png --symbol-number 5 --symbol-position 0 1 2 3 4 --symbol-version 10 10 10 10 10 10 10 10 10 10",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": false,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:23.051401",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_6.png --symbol-number 6 --symbol-position 0 1 2 3 4 5 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10",
+    "output_file": "output_examples/multi_block_6.png",
+    "input_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "jabcode_args": "--input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_6.png --symbol-number 6 --symbol-position 0 1 2 3 4 5 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": false,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:23.569478",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_7.png --symbol-number 7 --symbol-position 0 1 2 3 4 5 6 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10 10 10",
+    "output_file": "output_examples/multi_block_7.png",
+    "input_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "jabcode_args": "--input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_7.png --symbol-number 7 --symbol-position 0 1 2 3 4 5 6 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10 10 10",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": false,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:24.158914",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_8.png --symbol-number 8 --symbol-position 0 1 2 3 4 5 6 7 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10",
+    "output_file": "output_examples/multi_block_8.png",
+    "input_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "jabcode_args": "--input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_8.png --symbol-number 8 --symbol-position 0 1 2 3 4 5 6 7 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": false,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "timestamp": "2025-06-15T07:18:24.832670",
+    "command": "src/jabcodeWriter/bin/jabcodeWriter --input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_9.png --symbol-number 9 --symbol-position 0 1 2 3 4 5 6 7 8 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10",
+    "output_file": "output_examples/multi_block_9.png",
+    "input_text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "jabcode_args": "--input Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. --output output_examples/multi_block_9.png --symbol-number 9 --symbol-position 0 1 2 3 4 5 6 7 8 --symbol-version 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10",
+    "jabcode_defaults": {
+      "color-number": 8,
+      "module-size": 12,
+      "ecc-level": 3,
+      "color-space": 0
+    },
+    "success": false,
+    "stdout": "",
+    "stderr": ""
+  }
+]

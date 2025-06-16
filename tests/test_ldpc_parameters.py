@@ -1,8 +1,9 @@
 """Tests for LDPCParameters class."""
 
 import pytest
+
+from pyhue2d.jabcode.constants import DEFAULT_LDPC_WC, DEFAULT_LDPC_WR, ECC_LEVELS
 from pyhue2d.jabcode.ldpc.parameters import LDPCParameters
-from pyhue2d.jabcode.constants import ECC_LEVELS, DEFAULT_LDPC_WC, DEFAULT_LDPC_WR
 
 
 class TestLDPCParameters:

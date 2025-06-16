@@ -1,6 +1,7 @@
 """Tests for Symbol class."""
 
 import pytest
+
 from pyhue2d.jabcode.core import Symbol
 
 
@@ -49,9 +50,7 @@ class TestSymbol:
 
         # Test valid color counts
         for color_count in valid_colors:
-            symbol = Symbol(
-                version=1, color_count=color_count, ecc_level="M", matrix_size=(21, 21)
-            )
+            symbol = Symbol(version=1, color_count=color_count, ecc_level="M", matrix_size=(21, 21))
             assert symbol.color_count == color_count
 
         # Test invalid color count
@@ -64,9 +63,7 @@ class TestSymbol:
 
         # Test valid ECC levels
         for ecc_level in valid_levels:
-            symbol = Symbol(
-                version=1, color_count=8, ecc_level=ecc_level, matrix_size=(21, 21)
-            )
+            symbol = Symbol(version=1, color_count=8, ecc_level=ecc_level, matrix_size=(21, 21))
             assert symbol.ecc_level == ecc_level
 
         # Test invalid ECC level
@@ -80,14 +77,10 @@ class TestSymbol:
         assert symbol.matrix_size == (21, 21)
 
         # Test invalid matrix sizes
-        with pytest.raises(
-            ValueError, match="Matrix size must be a tuple of two positive integers"
-        ):
+        with pytest.raises(ValueError, match="Matrix size must be a tuple of two positive integers"):
             Symbol(version=1, color_count=8, ecc_level="M", matrix_size=(0, 21))
 
-        with pytest.raises(
-            ValueError, match="Matrix size must be a tuple of two positive integers"
-        ):
+        with pytest.raises(ValueError, match="Matrix size must be a tuple of two positive integers"):
             Symbol(version=1, color_count=8, ecc_level="M", matrix_size=(21, 0))
 
     def test_symbol_calculate_capacity(self):

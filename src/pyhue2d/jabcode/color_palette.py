@@ -1,12 +1,11 @@
 """Color palette management for JABCode implementation."""
 
-from typing import List, Tuple, Optional
 import math
+from typing import List, Optional, Tuple
+
 import numpy as np
-from .constants import (
-    SUPPORTED_COLOR_COUNTS,
-    get_color_palette,
-)
+
+from .constants import SUPPORTED_COLOR_COUNTS, get_color_palette
 
 
 class ColorPalette:
@@ -35,7 +34,6 @@ class ColorPalette:
             self.color_count = color_count
             self.colors = get_color_palette(color_count)
             self._validate_color_count(color_count)
-
 
     def _validate_color_count(self, color_count: int) -> None:
         """Validate color count is supported."""
@@ -80,9 +78,7 @@ class ColorPalette:
 
         return closest_index
 
-    def get_color_distance(
-        self, color1: Tuple[int, int, int], color2: Tuple[int, int, int]
-    ) -> float:
+    def get_color_distance(self, color1: Tuple[int, int, int], color2: Tuple[int, int, int]) -> float:
         """Calculate Euclidean distance between two colors."""
         r_diff = color1[0] - color2[0]
         g_diff = color1[1] - color2[1]

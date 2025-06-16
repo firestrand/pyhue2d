@@ -1,7 +1,7 @@
 """Pattern generation package for JABCode."""
 
-from .finder import FinderPatternGenerator
 from .alignment import AlignmentPatternGenerator
+from .finder import FinderPatternGenerator
 
 __all__ = [
     "FinderPatternGenerator",

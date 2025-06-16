@@ -12,7 +12,7 @@ from .symbol_sampler import SymbolSampler
 
 __all__ = [
     "RGBChannelBinarizer",
-    "FinderPatternDetector", 
+    "FinderPatternDetector",
     "PerspectiveTransformer",
     "SymbolSampler",
 ]

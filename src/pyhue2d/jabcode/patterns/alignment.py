@@ -1,8 +1,10 @@
 """Alignment pattern generation for JABCode symbols."""
 
+from typing import List, Tuple
+
 import numpy as np
-from typing import Tuple, List
-from ..constants import AlignmentPatternType, MAX_SYMBOL_VERSIONS
+
+from ..constants import MAX_SYMBOL_VERSIONS, AlignmentPatternType
 
 
 class AlignmentPatternGenerator:

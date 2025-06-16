@@ -1,7 +1,9 @@
 """Tests for Point2D class."""
 
-import pytest
 import math
+
+import pytest
+
 from pyhue2d.jabcode.core import Point2D
 
 

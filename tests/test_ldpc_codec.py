@@ -1,7 +1,8 @@
 """Tests for LDPCCodec class."""
 
-import pytest
 import numpy as np
+import pytest
+
 from pyhue2d.jabcode.ldpc.codec import LDPCCodec
 from pyhue2d.jabcode.ldpc.parameters import LDPCParameters
 from pyhue2d.jabcode.ldpc.seed_config import RandomSeedConfig
@@ -114,16 +115,16 @@ class TestLDPCCodecImplementation:
         original_data = np.array([1, 0, 1, 1, 0, 1, 0, 0, 1, 1], dtype=np.uint8)
         encoded = codec.encode(original_data)
         decoded_bytes = codec.decode(encoded)
-        
+
         # For numpy arrays treated as bit arrays, we need to unpack the bytes
         # back to bits to compare with the original
         if len(decoded_bytes) > 0:
             decoded_bits = np.unpackbits(np.frombuffer(decoded_bytes, dtype=np.uint8))
             # Take only the number of bits we originally had
-            decoded_data = decoded_bits[:len(original_data)]
+            decoded_data = decoded_bits[: len(original_data)]
         else:
             decoded_data = np.array([], dtype=np.uint8)
-        
+
         np.testing.assert_array_equal(original_data, decoded_data)
 
     def test_codec_encode_empty_data(self, codec):

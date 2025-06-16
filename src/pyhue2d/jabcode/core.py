@@ -1,8 +1,9 @@
 """Core data structures for JABCode implementation."""
 
+import math
 from dataclasses import dataclass
 from typing import Any, Optional, Tuple, Union
-import math
+
 import numpy as np
 from PIL import Image
 
@@ -216,9 +217,7 @@ class Bitmap:
         else:
             raise ValueError("Array must be 2D (grayscale) or 3D (RGB)")
 
-    def set_pixel(
-        self, x: int, y: int, value: Union[int, Tuple[int, int, int]]
-    ) -> None:
+    def set_pixel(self, x: int, y: int, value: Union[int, Tuple[int, int, int]]) -> None:
         """Set pixel value at coordinates (x, y)."""
         if not (0 <= x < self.width and 0 <= y < self.height):
             raise IndexError("Pixel coordinates out of bounds")
@@ -304,9 +303,7 @@ class Symbol:
         total_modules = self.matrix_size[0] * self.matrix_size[1]
         # Account for finder patterns, alignment patterns, and error correction
         data_modules = total_modules * 0.7  # Rough estimate
-        bits_per_module = {4: 2, 8: 3, 16: 4, 32: 5, 64: 6, 128: 7, 256: 8}[
-            self.color_count
-        ]
+        bits_per_module = {4: 2, 8: 3, 16: 4, 32: 5, 64: 6, 128: 7, 256: 8}[self.color_count]
         return int(data_modules * bits_per_module / 8)  # Convert to bytes
 
     def is_master(self) -> bool:

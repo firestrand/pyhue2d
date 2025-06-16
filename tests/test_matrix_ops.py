@@ -1,18 +1,19 @@
 """Tests for matrix operations module."""
 
-import pytest
 import numpy as np
+import pytest
+
 from pyhue2d.jabcode.matrix_ops import (
-    create_matrix,
-    rotate_matrix_90,
-    flip_matrix_horizontal,
-    flip_matrix_vertical,
-    extract_submatrix,
-    place_submatrix,
     apply_mask_pattern,
     calculate_matrix_checksum,
-    resize_matrix,
+    create_matrix,
+    extract_submatrix,
     find_pattern_in_matrix,
+    flip_matrix_horizontal,
+    flip_matrix_vertical,
+    place_submatrix,
+    resize_matrix,
+    rotate_matrix_90,
 )
 
 
@@ -76,9 +77,7 @@ class TestMatrixOps:
     def test_extract_submatrix_valid(self):
         """Test extracting submatrix with valid coordinates."""
         matrix = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]], dtype=np.uint8)
-        submatrix = extract_submatrix(
-            matrix, start_row=1, start_col=1, height=2, width=2
-        )
+        submatrix = extract_submatrix(matrix, start_row=1, start_col=1, height=2, width=2)
         expected = np.array([[6, 7], [10, 11]], dtype=np.uint8)
 
         assert np.array_equal(submatrix, expected)
@@ -192,9 +191,7 @@ class TestMatrixOps:
 
     def test_find_pattern_in_matrix_multiple(self):
         """Test finding multiple occurrences of pattern."""
-        matrix = np.array(
-            [[1, 2, 0, 1, 2], [0, 0, 0, 0, 0], [1, 2, 0, 0, 0]], dtype=np.uint8
-        )
+        matrix = np.array([[1, 2, 0, 1, 2], [0, 0, 0, 0, 0], [1, 2, 0, 0, 0]], dtype=np.uint8)
 
         pattern = np.array([[1, 2]], dtype=np.uint8)
         positions = find_pattern_in_matrix(matrix, pattern)

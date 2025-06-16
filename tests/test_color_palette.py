@@ -1,6 +1,7 @@
 """Tests for ColorPalette class."""
 
 import pytest
+
 from pyhue2d.jabcode.color_palette import ColorPalette
 
 

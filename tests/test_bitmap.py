@@ -1,7 +1,8 @@
 """Tests for Bitmap class."""
 
-import pytest
 import numpy as np
+import pytest
+
 from pyhue2d.jabcode.core import Bitmap
 
 
@@ -30,14 +31,10 @@ class TestBitmap:
         """Test Bitmap validates array dimensions match width/height."""
         array = np.zeros((10, 10, 3), dtype=np.uint8)
 
-        with pytest.raises(
-            ValueError, match="Array dimensions don't match width/height"
-        ):
+        with pytest.raises(ValueError, match="Array dimensions don't match width/height"):
             Bitmap(array=array, width=5, height=10)
 
-        with pytest.raises(
-            ValueError, match="Array dimensions don't match width/height"
-        ):
+        with pytest.raises(ValueError, match="Array dimensions don't match width/height"):
             Bitmap(array=array, width=10, height=5)
 
     def test_bitmap_array_type_validation(self):
