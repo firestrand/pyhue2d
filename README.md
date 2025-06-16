@@ -2,7 +2,8 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/pyhue2d.svg)](https://pypi.org/project/pyhue2d/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/<username>/pyhue2d/actions/workflows/ci.yml/badge.svg)](https://github.com/<username>/pyhue2d/actions)
+[![CI](https://github.com/firestrand/pyhue2d/actions/workflows/ci.yml/badge.svg)](https://github.com/firestrand/pyhue2d/actions)
+[![Coverage](https://codecov.io/gh/firestrand/pyhue2d/branch/main/graph/badge.svg)](https://codecov.io/gh/firestrand/pyhue2d)
 
 **PyHue2D** is a Python toolkit for generating and decoding high-density **color 2-D barcodes**. It starts with ISO/IEC 23634:2022 *JAB Code* support and is designed to explore other colorful symbologies such as color QR codes.
 
