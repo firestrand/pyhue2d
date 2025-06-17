@@ -242,8 +242,8 @@ class FinderPatternDetector:
 
                 # Too much noise indicates random pattern rather than structured finder pattern
                 if (
-                    noise_level > 70
-                ):  # Moderate threshold - JABCode patterns can have structured edges, but reject pure noise
+                    noise_level > 60
+                ):  # strict threshold
                     return False
             except ImportError:
                 # Method 2: Alternative noise detection without scipy
@@ -288,7 +288,7 @@ class FinderPatternDetector:
                     isolated_pixels = np.sum(binary != dilated) / total_pixels
 
                     # Random noise typically has many isolated pixels
-                    if isolated_pixels > 0.3:  # Too many isolated pixels suggests noise
+                    if isolated_pixels > 0.05:  # Very sensitive isolated pixel threshold
                         return False
                 except ImportError:
                     # Fallback: check for excessive small regions
