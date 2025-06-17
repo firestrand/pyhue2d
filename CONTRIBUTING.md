@@ -51,6 +51,26 @@ Thank you for your interest in contributing to PyHue2D! We welcome bug reports, 
 - Reference related issues in your PR description.
 - Ensure all tests and checks pass before submitting a pull request.
 
+### Conventional Commits
+PyHue2D uses the [Conventional Commits](https://www.conventionalcommits.org/) specification so that our automated release tooling can determine the next semantic version and generate changelogs.
+
+Prefix your commit subject with one of the following types:
+
+* `feat:` – new user-facing feature
+* `fix:` – bug fix
+* `docs:` – documentation changes only
+* `chore:` – CI, build system, or other internals
+* `refactor:` – code change that neither fixes a bug nor adds a feature
+* `test:` – adding or updating tests
+
+Example:
+
+```bash
+git commit -m "feat: add HiQ Color-QR encoder"
+```
+
+The CI will fail if commit messages don't follow this pattern on protected branches.
+
 ---
 
 ## ✅ Code Quality

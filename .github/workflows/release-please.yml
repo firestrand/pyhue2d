@@ -1,0 +1,20 @@
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Release-please
+        uses: google-github-actions/release-please-action@v4
+        with:
+          release-type: python
+          package-name: pyhue2d
+          bump-minor-pre-major: true 
