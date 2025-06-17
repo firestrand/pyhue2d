@@ -60,7 +60,7 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run tests with coverage
-        run: pytest -v --cov=pyhue2d --cov-report=xml
+        run: pytest -v --cov=pyhue2d --cov-branch --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
