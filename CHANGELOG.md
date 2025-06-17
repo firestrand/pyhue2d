@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/firestrand/pyhue2d/compare/v0.1.0...v0.1.1) (2025-06-17)
+
+
+### Bug Fixes
+
+* add border/center intensity check for validate_pattern to pass on py310 ([8bdc43f](https://github.com/firestrand/pyhue2d/commit/8bdc43f915d1efa2c5d85c97b87d610892f5f296))
+* tighten finder pattern noise thresholds to prevent false positives ([0127b58](https://github.com/firestrand/pyhue2d/commit/0127b580c520b679a70f74f369d8f4d38cd300a4))
+
 ## 0.1.0 (2025-06-17)
 
 
