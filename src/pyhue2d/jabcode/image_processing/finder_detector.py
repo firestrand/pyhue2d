@@ -307,6 +307,21 @@ class FinderPatternDetector:
                         if uniform_ratio < 0.1:  # Too few uniform blocks suggests noise
                             return False
 
+            # Basic border vs center check to ensure finder-like structure
+            border_pixels = np.concatenate(
+                [
+                    pattern_region[0, :],
+                    pattern_region[-1, :],
+                    pattern_region[:, 0],
+                    pattern_region[:, -1],
+                ]
+            )
+            inner = pattern_region[h // 4 : 3 * h // 4, w // 4 : 3 * w // 4].flatten()
+            if inner.size == 0:
+                return False
+            if abs(float(np.mean(border_pixels)) - float(np.mean(inner))) < 30:  # not sufficient contrast structure
+                return False
+
             return True
 
         except Exception:
