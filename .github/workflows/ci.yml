@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install .[dev]
+          pip install -r requirements-dev.txt
 
       - name: Black (code style)
         run: black --check .
@@ -56,7 +56,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install .[dev]
+          pip install -r requirements-dev.txt
 
       - name: Run tests with coverage
         run: pytest -v --cov=pyhue2d --cov-report=xml
