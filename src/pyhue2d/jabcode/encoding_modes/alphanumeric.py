@@ -11,11 +11,7 @@ class AlphanumericMode(EncodingModeBase):
         """Initialize alphanumeric mode."""
         super().__init__(mode_id=5, name="Alphanumeric")
         # JABCode/QR alphanumeric charset: digits, uppercase letters, space and select symbols
-        self.charset = (
-            "0123456789"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
-            "$%*+-./:"
-        )
+        self.charset = "0123456789" "ABCDEFGHIJKLMNOPQRSTUVWXYZ " "$%*+-./:"
 
     def can_encode(self, text: str) -> bool:
         """Check if text can be encoded in alphanumeric mode.

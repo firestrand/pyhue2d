@@ -43,8 +43,8 @@ class FinderPatternDetector:
         "quality_threshold": 0.5,
         # Optimization settings for large images
         "large_image_threshold": 1000000,  # pixels (1000x1000)
-        "large_image_skip_factor": 2,     # Skip every N pixels for large images
-        "max_patterns_per_symbol": 100,   # Limit patterns to prevent memory issues
+        "large_image_skip_factor": 2,  # Skip every N pixels for large images
+        "max_patterns_per_symbol": 100,  # Limit patterns to prevent memory issues
     }
 
     def __init__(self, settings: Optional[Dict[str, Any]] = None):
@@ -61,7 +61,7 @@ class FinderPatternDetector:
         self.detection_methods = [
             "template_matching",
             "contour_detection",  # Preferred explicit name
-            "contour",            # Alias for contour_detection
+            "contour",  # Alias for contour_detection
             "hybrid",
             "scanline",
         ]
@@ -470,12 +470,12 @@ class FinderPatternDetector:
             raise TypeError("Input must be a numpy array")
         if array.ndim not in (2, 3):
             raise ValueError(f"Unsupported array shape for scanline detection: {array.shape}")
-        
+
         # Check if this is a large image and optimize accordingly
         height, width = array.shape[:2]
         total_pixels = height * width
         is_large_image = total_pixels > self.settings["large_image_threshold"]
-        
+
         if is_large_image:
             # For large images, use a coarser scan to improve performance
             skip_factor = self.settings["large_image_skip_factor"]
@@ -724,7 +724,7 @@ class FinderPatternDetector:
         if is_large_image and len(patterns) > self.settings["max_patterns_per_symbol"]:
             # Sort by confidence and keep the best patterns
             patterns.sort(key=lambda p: p.get("confidence", 0), reverse=True)
-            patterns = patterns[:self.settings["max_patterns_per_symbol"]]
+            patterns = patterns[: self.settings["max_patterns_per_symbol"]]
             print(f"Limited to {len(patterns)} best patterns for large image")
 
         # Remove overlapping patterns and apply quality-based filtering

@@ -1,6 +1,6 @@
 """Punctuation encoding mode."""
 
-from ..constants import PUNCTUATION_CHARS, UPPERCASE_CHARS, LOWERCASE_CHARS, NUMERIC_CHARS
+from ..constants import LOWERCASE_CHARS, NUMERIC_CHARS, PUNCTUATION_CHARS, UPPERCASE_CHARS
 from .base import EncodingModeBase
 
 
@@ -14,9 +14,7 @@ class PunctuationMode(EncodingModeBase):
         # Exclude uncommon symbols such as '@', '#', '$', '%', '^', '&', '*'.
         allowed_punct = ",.:!?()[]{}\"'@#"  # Added @ # to allowed
         self.disallowed_set = set("$%^&*")
-        self.charset = (
-            UPPERCASE_CHARS + LOWERCASE_CHARS + NUMERIC_CHARS + " " + allowed_punct
-        )
+        self.charset = UPPERCASE_CHARS + LOWERCASE_CHARS + NUMERIC_CHARS + " " + allowed_punct
 
     def can_encode(self, text: str) -> bool:
         """Check if text does not contain disallowed symbols."""
@@ -25,9 +23,7 @@ class PunctuationMode(EncodingModeBase):
     def encode(self, text: str) -> bytes:
         """Encode text by returning UTF-8 bytes (simple implementation)."""
         if not self.can_encode(text):
-            raise ValueError(
-                f"Text contains characters not supported by {self.name} mode"
-            )
+            raise ValueError(f"Text contains characters not supported by {self.name} mode")
         return text.encode("utf-8")
 
     def decode(self, data: bytes) -> str:

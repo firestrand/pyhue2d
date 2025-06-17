@@ -421,10 +421,12 @@ class TestRoundTripStatistics:
                 final_decoder_stats = decoder.get_detection_stats()
 
                 # Verify statistics were updated
-                assert final_decoder_stats["total_decoded"] > initial_decoder_stats["total_decoded"], \
-                    f"total_decoded should increase: {initial_decoder_stats} -> {final_decoder_stats}"
-                assert final_decoder_stats["total_detection_time"] >= initial_decoder_stats["total_detection_time"], \
-                    f"detection_time should increase: {initial_decoder_stats} -> {final_decoder_stats}"
+                assert (
+                    final_decoder_stats["total_decoded"] > initial_decoder_stats["total_decoded"]
+                ), f"total_decoded should increase: {initial_decoder_stats} -> {final_decoder_stats}"
+                assert (
+                    final_decoder_stats["total_detection_time"] >= initial_decoder_stats["total_detection_time"]
+                ), f"detection_time should increase: {initial_decoder_stats} -> {final_decoder_stats}"
 
                 print(f"Decoder stats: {final_decoder_stats}")
 

@@ -73,8 +73,8 @@ class TestJABCodeDecoderImplementation:
         """Test decoding a simple JABCode image."""
         # Test that decoder can handle a simple case
         assert decoder is not None
-        assert hasattr(decoder, 'decode')
-        
+        assert hasattr(decoder, "decode")
+
         # Test with non-existent file should raise ValueError
         with pytest.raises(ValueError, match="JABCode decoding failed"):
             decoder.decode("nonexistent.png")
@@ -84,9 +84,9 @@ class TestJABCodeDecoderImplementation:
         # Test creating decoder with different settings
         settings = {"detection_method": "scanline", "perspective_correction": True}
         decoder_with_settings = JABCodeDecoder(settings)
-        
+
         assert decoder_with_settings is not None
-        assert hasattr(decoder_with_settings, 'decode')
+        assert hasattr(decoder_with_settings, "decode")
         assert decoder_with_settings.settings["detection_method"] == "scanline"
 
 
@@ -101,31 +101,31 @@ if os.path.exists(MANIFEST_PATH):
     @pytest.mark.parametrize("example", EXAMPLES)
     def test_round_trip_encoding_decoding(example):
         """Test encoding then decoding example data for round-trip validation."""
-        from pyhue2d.jabcode.encoder import JABCodeEncoder
         from pyhue2d.jabcode.decoder import JABCodeDecoder
-        
+        from pyhue2d.jabcode.encoder import JABCodeEncoder
+
         # Get test data
         text = example["text"]
         test_data = text.encode("utf-8")
-        
+
         # Encode
         encoder = JABCodeEncoder({"color_count": 8, "ecc_level": "M"})
         encoded_image = encoder.encode_to_image(test_data)
-        
+
         # Save to temporary file
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
             encoded_image.save(tmp_file.name)
             tmp_path = tmp_file.name
-        
+
         try:
             # Decode
             decoder = JABCodeDecoder()
             decoded_data = decoder.decode(tmp_path)
-            
+
             # Verify we got some data back (exact match may not work due to data format differences)
             assert len(decoded_data) > 0
             print(f"Original: {len(test_data)} bytes, Decoded: {len(decoded_data)} bytes")
-            
+
         finally:
             Path(tmp_path).unlink(missing_ok=True)
 

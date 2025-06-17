@@ -8,7 +8,9 @@ from .jabcode.decoder import JABCodeDecoder
 from .jabcode.encoder import JABCodeEncoder
 
 
-def encode(data: Union[str, bytes], colors: int = 8, ecc_level: str = "M", quiet_zone: int = 4, module_size: int = 12) -> Image.Image:
+def encode(
+    data: Union[str, bytes], colors: int = 8, ecc_level: str = "M", quiet_zone: int = 4, module_size: int = 12
+) -> Image.Image:
     """Encode *data* to a colour 2‑D symbol such as JAB Code.
 
     Args:

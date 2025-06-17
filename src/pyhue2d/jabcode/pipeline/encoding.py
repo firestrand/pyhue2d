@@ -4,15 +4,16 @@ This module provides the EncodingPipeline class which orchestrates the complete
 JABCode encoding process from data input to symbol bitmap generation.
 """
 
-import time
-import os
-from typing import Any, Dict, List, Optional, Union
 import logging
+import os
+import time
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 from PIL import Image
 
 from .. import matrix_ops
+from ..bitmap_renderer import BitmapRenderer
 from ..color_palette import ColorPalette
 from ..core import Bitmap, EncodedData, Symbol
 from ..ldpc.codec import LDPCCodec
@@ -22,7 +23,6 @@ from ..patterns.alignment import AlignmentPatternGenerator
 from ..patterns.finder import FinderPatternGenerator
 from ..version_calculator import SymbolVersionCalculator
 from .processor import DataProcessor
-from ..bitmap_renderer import BitmapRenderer
 
 
 class EncodingPipeline:

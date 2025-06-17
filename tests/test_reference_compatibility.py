@@ -149,30 +149,33 @@ class TestReferenceCompatibility:
 
         # Test just the first few examples to avoid long test times
         test_examples = examples[:3]
-        
+
         for example in test_examples:
             text = example["text"]
             reference_path = os.path.join(examples_dir, example["output"])
             if not os.path.exists(reference_path):
                 continue
-                
+
             reference_image = Image.open(reference_path)
 
             # Configure encoder with compatible settings
             from pyhue2d.jabcode.encoder import JABCodeEncoder
+
             encoder = JABCodeEncoder({"color_count": 8, "ecc_level": "M", "quiet_zone": 0, "module_size": 12})
             our_image = encoder.encode_to_image(text.encode("utf-8"))
 
             # Test structural compatibility rather than exact match
             assert our_image.size[0] > 0 and our_image.size[1] > 0, "Our image should have valid dimensions"
-            
+
             # Test that both images can encode data (functional compatibility)
             # Size may differ due to different module sizes and quiet zones
             print(f"Tested {example['output']}: our {our_image.size} vs reference {reference_image.size}")
-            
+
             # Both should be reasonably sized JABCode images
             assert our_image.size[0] >= 50 and our_image.size[1] >= 50, "Our image should be reasonably sized"
-            assert reference_image.size[0] >= 50 and reference_image.size[1] >= 50, "Reference should be reasonably sized"
+            assert (
+                reference_image.size[0] >= 50 and reference_image.size[1] >= 50
+            ), "Reference should be reasonably sized"
 
     def test_debug_reference_vs_ours(self, examples_data):
         """Debug comparison between reference and our implementation."""

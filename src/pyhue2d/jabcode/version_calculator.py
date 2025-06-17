@@ -167,7 +167,9 @@ class SymbolVersionCalculator:
         metadata_modules = 20 if is_master else 5
 
         # Calculate usable modules
-        usable_modules = total_modules - finder_pattern_modules - alignment_pattern_modules - palette_modules - metadata_modules
+        usable_modules = (
+            total_modules - finder_pattern_modules - alignment_pattern_modules - palette_modules - metadata_modules
+        )
         usable_modules = max(0, usable_modules)
 
         # Calculate raw bit capacity
@@ -215,17 +217,15 @@ class SymbolVersionCalculator:
         """Create alignment pattern position lookup table, from C reference."""
         # This table is derived from `jab_ap_num` in the C implementation.
         # It represents the number of alignment patterns along one edge for a given version.
-        jab_ap_num = [
-            0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7
-        ]
-        
+        jab_ap_num = [0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7]
+
         ap_positions: Dict[int, list[int]] = {}
         for version in range(1, MAX_SYMBOL_VERSIONS + 1):
             num_aps = jab_ap_num[version - 1]
             if num_aps == 0:
                 ap_positions[version] = []
                 continue
-            
+
             size = 21 + (version - 1) * 4
             # Simplified logic from C to determine positions
             positions = [6]  # First AP is always at index 6
@@ -236,5 +236,5 @@ class SymbolVersionCalculator:
                     positions.append(round(6 + i * spacing))
                 positions.append(last_pos)
             ap_positions[version] = positions
-            
+
         return ap_positions

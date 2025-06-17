@@ -158,7 +158,7 @@ class JABCodeDecoder:
             # Update statistics even on failure
             decoding_time = time.time() - start_time
             self._update_stats(decoding_time, 0)  # 0 patterns found on failure
-            
+
             if isinstance(e, NotImplementedError):
                 raise
             raise ValueError(f"JABCode decoding failed: {str(e)}") from e
@@ -332,9 +332,7 @@ class JABCodeDecoder:
 
         return ordered[:4]  # Ensure exactly 4 patterns
 
-    def _validate_jabcode_patterns(
-        self, patterns: List[Point2D], pattern_dicts: List[Dict[str, Any]]
-    ) -> bool:
+    def _validate_jabcode_patterns(self, patterns: List[Point2D], pattern_dicts: List[Dict[str, Any]]) -> bool:
         """Validate that detected patterns form a valid JABCode symbol.
 
         Based on the JABCode reference implementation's validation approach.
@@ -353,7 +351,7 @@ class JABCodeDecoder:
         # This handles the case where some patterns may have incorrect module sizes
         module_sizes = []
         valid_patterns = []
-        
+
         for pattern_dict in pattern_dicts:
             module_size = pattern_dict.get("module_size", 0)
             if module_size > 0:
@@ -373,11 +371,11 @@ class JABCodeDecoder:
 
         # Find the most common size
         most_common_size = max(size_counts.items(), key=lambda x: x[1])[0]
-        
+
         # Count how many patterns have the most common size (within tolerance)
         tolerance = most_common_size * 0.2  # 20% tolerance
         consistent_patterns = 0
-        
+
         for size in module_sizes:
             if abs(size - most_common_size) <= tolerance:
                 consistent_patterns += 1
@@ -396,153 +394,159 @@ class JABCodeDecoder:
 
         return True
 
-    def _decode_multi_symbol(self, image: Image.Image, all_patterns: List[Point2D], pattern_dicts: List[Dict[str, Any]]) -> bytes:
+    def _decode_multi_symbol(
+        self, image: Image.Image, all_patterns: List[Point2D], pattern_dicts: List[Dict[str, Any]]
+    ) -> bytes:
         """Decode multi-symbol JABCode with grid layout.
-        
+
         Args:
             image: Source image
             all_patterns: All detected pattern centers
             pattern_dicts: Complete pattern information
-            
+
         Returns:
             Decoded data from all symbols combined
         """
         print("Starting multi-symbol decoding...")
-        
+
         # Group patterns into individual symbols (each symbol needs 4 corner patterns)
         symbol_groups = self._group_patterns_into_symbols(all_patterns, pattern_dicts)
-        
+
         print(f"Detected {len(symbol_groups)} individual symbols")
-        
+
         if len(symbol_groups) == 0:
             raise ValueError("No valid symbol groups found in multi-symbol JABCode")
-        
+
         # Decode each symbol individually
         all_decoded_data = []
         successful_decodes = 0
-        
+
         for i, (symbol_patterns, symbol_pattern_dicts) in enumerate(symbol_groups):
             try:
                 print(f"Decoding symbol {i+1}/{len(symbol_groups)}...")
-                
+
                 # Validate patterns for this symbol
                 if not self._validate_jabcode_patterns(symbol_patterns, symbol_pattern_dicts):
                     print(f"  Symbol {i+1}: Invalid patterns, skipping")
                     continue
-                    
+
                 # Select best 4 patterns for this symbol
                 patterns = self._select_jabcode_patterns(symbol_patterns, symbol_pattern_dicts)
-                
+
                 if len(patterns) < 4:
                     print(f"  Symbol {i+1}: Not enough patterns ({len(patterns)}), skipping")
                     continue
-                
+
                 # Estimate symbol size
                 symbol_size = self._estimate_symbol_size(patterns, image)
-                
+
                 # Extract region for this symbol
                 symbol_region = self._extract_symbol_region(image, patterns, symbol_size)
-                
+
                 # Process this symbol using the standard pipeline
                 symbol_metadata = self._extract_symbol_metadata(patterns, symbol_size)
                 module_data = self.module_extractor.extract_module_data(symbol_region, symbol_metadata)
-                
+
                 # Apply error correction
                 if self.settings["error_correction"]:
                     corrected_data = self._apply_error_correction(module_data, symbol_metadata)
                 else:
                     corrected_data = module_data
-                
+
                 # Reconstruct data
                 reconstructed_data = self._reconstruct_data(corrected_data, symbol_metadata)
-                
+
                 if len(reconstructed_data) > 0:
                     all_decoded_data.append(reconstructed_data)
                     successful_decodes += 1
                     print(f"  Symbol {i+1}: Success ({len(reconstructed_data)} bytes)")
                 else:
                     print(f"  Symbol {i+1}: Empty result")
-                    
+
             except Exception as e:
                 print(f"  Symbol {i+1}: Failed - {e}")
                 continue
-        
+
         print(f"Multi-symbol decode complete: {successful_decodes}/{len(symbol_groups)} symbols decoded")
-        
+
         if successful_decodes == 0:
             raise ValueError("No symbols could be successfully decoded")
-        
+
         # Combine all decoded data
         # For JABCode, symbols should be concatenated in reading order
-        combined_data = b''.join(all_decoded_data)
-        
+        combined_data = b"".join(all_decoded_data)
+
         return combined_data
-    
-    def _group_patterns_into_symbols(self, all_patterns: List[Point2D], pattern_dicts: List[Dict[str, Any]]) -> List[Tuple[List[Point2D], List[Dict[str, Any]]]]:
+
+    def _group_patterns_into_symbols(
+        self, all_patterns: List[Point2D], pattern_dicts: List[Dict[str, Any]]
+    ) -> List[Tuple[List[Point2D], List[Dict[str, Any]]]]:
         """Group detected patterns into individual symbol clusters.
-        
+
         Args:
             all_patterns: All detected pattern centers
             pattern_dicts: Complete pattern information
-            
+
         Returns:
             List of (patterns, pattern_dicts) tuples for each symbol
         """
         # Use clustering to group patterns that belong to the same symbol
         # JABCode symbols are typically spaced apart, so we can use distance-based clustering
-        
+
         if len(all_patterns) < 4:
             return []
-        
+
         # Calculate average module size to determine clustering distance
         module_sizes = [pd.get("module_size", 12) for pd in pattern_dicts]
         avg_module_size = sum(module_sizes) / len(module_sizes)
-        
+
         # Symbols are typically ~21 modules apart, so clustering distance should be larger
         cluster_distance = avg_module_size * 15  # Distance threshold for grouping
-        
+
         print(f"Using cluster distance: {cluster_distance} (avg module size: {avg_module_size})")
-        
+
         # Simple clustering: group patterns that are close together
         clusters = []
         used = set()
-        
+
         for i, pattern in enumerate(all_patterns):
             if i in used:
                 continue
-                
+
             # Start a new cluster
             cluster_patterns = [pattern]
             cluster_dicts = [pattern_dicts[i]]
             used.add(i)
-            
+
             # Find all patterns within clustering distance
             for j, other_pattern in enumerate(all_patterns):
                 if j in used:
                     continue
-                    
+
                 distance = ((pattern.x - other_pattern.x) ** 2 + (pattern.y - other_pattern.y) ** 2) ** 0.5
-                
+
                 if distance < cluster_distance:
                     cluster_patterns.append(other_pattern)
                     cluster_dicts.append(pattern_dicts[j])
                     used.add(j)
-            
+
             # Only keep clusters with at least 4 patterns (minimum for a JABCode symbol)
             if len(cluster_patterns) >= 4:
                 clusters.append((cluster_patterns, cluster_dicts))
-        
+
         print(f"Found {len(clusters)} potential symbol clusters")
         return clusters
-    
-    def _extract_symbol_region(self, image: Image.Image, patterns: List[Point2D], symbol_size: Tuple[int, int]) -> np.ndarray:
+
+    def _extract_symbol_region(
+        self, image: Image.Image, patterns: List[Point2D], symbol_size: Tuple[int, int]
+    ) -> np.ndarray:
         """Extract the region containing a single symbol.
-        
+
         Args:
             image: Source image
             patterns: Finder patterns for this symbol
             symbol_size: Symbol dimensions
-            
+
         Returns:
             Symbol region as numpy array
         """
@@ -551,22 +555,22 @@ class JABCodeDecoder:
         max_x = max(p.x for p in patterns)
         min_y = min(p.y for p in patterns)
         max_y = max(p.y for p in patterns)
-        
+
         # Add padding based on symbol size
         width, height = symbol_size
         module_size = (max_x - min_x) / width if width > 0 else 12
         padding = int(module_size * 2)
-        
+
         # Ensure coordinates are within image bounds
         img_width, img_height = image.size
         x1 = max(0, int(min_x - padding))
         y1 = max(0, int(min_y - padding))
         x2 = min(img_width, int(max_x + padding))
         y2 = min(img_height, int(max_y + padding))
-        
+
         # Extract region
         region = image.crop((x1, y1, x2, y2))
-        
+
         return np.array(region)
 
     def _estimate_symbol_size(self, patterns: List[Point2D], image: Image.Image) -> Tuple[int, int]:
@@ -712,13 +716,13 @@ class JABCodeDecoder:
                 # LDPC decoding failed - this is expected since we don't have proper
                 # LDPC-encoded data from a real JABCode encoder yet.
                 # For now, we'll attempt to treat the bit array as raw data
-                
+
                 # Convert bit array back to bytes for direct interpretation
                 # Pad to byte boundary
                 padded_bits = len(bit_array) + (8 - len(bit_array) % 8) % 8
                 padded_array = np.zeros(padded_bits, dtype=np.uint8)
-                padded_array[:len(bit_array)] = bit_array
-                
+                padded_array[: len(bit_array)] = bit_array
+
                 # Convert to bytes
                 try:
                     byte_data = np.packbits(padded_array).tobytes()
@@ -748,14 +752,14 @@ class JABCodeDecoder:
 
             # Convert bytes to bit array for DataDecoder
             bit_array = np.unpackbits(np.frombuffer(corrected_data, dtype=np.uint8))
-            
+
             print(f"Reconstructing data from {len(corrected_data)} bytes ({len(bit_array)} bits)")
-            
+
             # Use the proper JABCode data decoder
             decoded_data = self.data_decoder.decode_data(bit_array)
-            
+
             print(f"DataDecoder result: {len(decoded_data)} bytes")
-            
+
             return decoded_data
 
         except Exception as e:

@@ -55,10 +55,10 @@ class NumericMode(EncodingModeBase):
         if invalid_chars:
             return 0.0
 
-        if " " in text and text.replace(" ","").isdigit():
-            digits = len(text.replace(" ",""))
-            ratio = digits/len(text)
-            return round(ratio*0.8,1)
+        if " " in text and text.replace(" ", "").isdigit():
+            digits = len(text.replace(" ", ""))
+            ratio = digits / len(text)
+            return round(ratio * 0.8, 1)
 
         digits = sum(c.isdigit() for c in text)
         numeric_ratio = digits / len(text)

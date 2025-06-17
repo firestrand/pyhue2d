@@ -153,14 +153,15 @@ class DataProcessor:
 
         # Use JABCode-compatible data encoder instead of mode-based encoding
         from ..jabcode_data_encoder import JABCodeDataEncoder
+
         jabcode_encoder = JABCodeDataEncoder()
-        
+
         # Encode all chunks with JABCode format
         encoded_bit_arrays = []
         for chunk in chunks:
             bit_array = jabcode_encoder.encode_string(chunk)
             encoded_bit_arrays.append(bit_array)
-        
+
         # Combine all bit arrays
         if encoded_bit_arrays:
             combined_bits = np.concatenate(encoded_bit_arrays)
@@ -168,14 +169,16 @@ class DataProcessor:
             # Pad to byte boundary
             padded_length = len(combined_bits) + (8 - len(combined_bits) % 8) % 8
             padded_bits = np.zeros(padded_length, dtype=np.uint8)
-            padded_bits[:len(combined_bits)] = combined_bits
+            padded_bits[: len(combined_bits)] = combined_bits
             # Pack bits into bytes
             combined_encoded = np.packbits(padded_bits).tobytes()
         else:
             combined_encoded = b""
 
         # Log processed data and encoding mode for validation
-        print(f"JABCode-encoded data size: {len(combined_encoded)} bytes from {len(combined_bits) if 'combined_bits' in locals() else 0} bits")
+        print(
+            f"JABCode-encoded data size: {len(combined_encoded)} bytes from {len(combined_bits) if 'combined_bits' in locals() else 0} bits"
+        )
         print(f"Selected encoding mode: JABCode-compatible")
 
         # Calculate processing time
