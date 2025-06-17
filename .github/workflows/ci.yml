@@ -65,7 +65,8 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: coverage.xml
+          files: coverage.xml
+          slug: firestrand/pyhue2d
           flags: ${{ matrix.python-version }}
           fail_ci_if_error: true
 
