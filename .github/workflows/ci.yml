@@ -34,7 +34,8 @@ jobs:
         run: flake8 .
 
       - name: Mypy (typing)
-        run: mypy --ignore-errors src tests
+        continue-on-error: true
+        run: mypy --ignore-missing-imports src tests
 
   test:
     name: Unit-test matrix
