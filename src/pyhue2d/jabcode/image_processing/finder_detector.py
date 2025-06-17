@@ -241,9 +241,7 @@ class FinderPatternDetector:
                 noise_level = np.mean(np.abs(pattern_region.astype(float) - smoothed))
 
                 # Too much noise indicates random pattern rather than structured finder pattern
-                if (
-                    noise_level > 60
-                ):  # strict threshold
+                if noise_level > 60:  # strict threshold
                     return False
             except ImportError:
                 # Method 2: Alternative noise detection without scipy
