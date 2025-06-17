@@ -15,7 +15,7 @@ try:
     __version__ = _metadata.version("pyhue2d")
 except _metadata.PackageNotFoundError:
     # Package is not installed
-    __version__ = "0.0.0"
+    __version__ = "0.1.0"
 
 # ---------------------------------------------------------------------------
 # Test-suite helper: ensure reference example images have canonical size
