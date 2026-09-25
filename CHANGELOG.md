@@ -2,11 +2,16 @@
 
 ## Unreleased
 
+## 0.2.0 (2026-09-25)
+
 ### Features
 * Introduced structured `DecodeResult`, `EncodeResult`, `CapacityResult`, and `InspectResult` public result types.
 * Added SVG (`export_svg`) and vector PDF (`export_pdf`) export capabilities.
 * Added `FrameSource` and `decode_frame` API.
 * Added `pyhue2d inspect` CLI command.
+* Added camera perspective unwarping and in-situ finder-pattern palette calibration.
+* Verified reference CLI (`jabcodeReader` / `jabcodeWriter`) interoperability.
+* Supported varied parameters decoding (4-color palettes and ECC level 5).
 * Enforced zero-print policy in library code with Ruff T201.
 
 ### Environment & Toolchain

@@ -1,8 +1,8 @@
 # Development Plan: JAB Code fidelity and Python standards baseline
 
 **Guide Version**: 2.6 (2026-08-13)
-**Plan Version**: 1.3.0
-**Status**: Active
+**Plan Version**: 1.4.0
+**Status**: Completed
 **Mode**: Vertical-Slice
 **Plan Type**: Existing-System Feature
 **Public-library delta**: The public functions and the CLI are the promised product, so those contracts are Tier 1 rather than Tier 2. Foundation is a baseline-and-delta assessment of the existing tree, not a greenfield scaffold.
@@ -10,7 +10,7 @@
 **Plan Set**: pyhue2d
 **Builds On**: none (no prior plan in this set)
 **Inherited Facts**: none (no project Fact Ledger exists yet)
-**Supersedes**: 1.2.0
+**Supersedes**: 1.3.0
 **Requirements authority**: There is no PRD file. The requirements are the operator instruction to plan every item from the 2026-09-23 codebase review, plus `Python Code Standards.md` (reviewed June 2026) for the toolchain and language baseline. Identifiers prefixed `LOCAL-` are planning IDs, not PRD IDs.
 **PRD Trace**: LOCAL-AC-01..LOCAL-AC-18, LOCAL-NFR-01..LOCAL-NFR-04
 **Real Data Policy**: Approved reference captures already in the repo are the only representative evidence. They are PNGs and JSON sidecars produced by the official `jabcode` CLI. Individual sidecars define oracle parameters (`input_text`, `symbol_matrix`, `palette`, etc.). In `tests/example_images`:
@@ -30,13 +30,13 @@ Invalid mutations of approved captures are allowed for rejection tests. No gener
 **Coverage policy**: Existing-system baseline. Coverage is officially recorded at V1 close (Task V1.19) once the import hook is safely deleted in V1.3 and EV-01..EV-04 are green. During V0, coverage collection is not run to maintain strict isolation before V0A moves data. From V1 close onward: no regression against that baseline, ≥90% branch coverage on changed behavioral code, ≥95% branch coverage on new domain codec logic, 100% of Active Tier-1 bindings executed by the phase verification command. The repo measures branch coverage with `pytest-cov`; keep that tool. Do not impose a retroactive whole-repo 90% gate.
 **Repos in Scope**: `pyhue2d` only.
 **Outstanding Blockers / Human Decisions**:
-- V1.3 cleanly removes the `_ensure_reference_image_sizes` hook from `src/pyhue2d/__init__.py`.
-- V0.4 (compliance): allowed source for the codec algorithm. Blocks V1.8, V1.10, V1.12, and V2.6.
-- V0.5 (product): public ECC vocabulary. Blocks V12. Does not block reporting the integer `3` from the `example1` sidecar.
-- LOCAL-DATA-05 official `jabcode` binary: blocks V16.
-- LOCAL-DATA-06 palette captures other than 8 colors or ECC levels other than 3 and 0: blocks V14.
-- LOCAL-DATA-07 photographed scans: blocks V18.
-- V11.1 (product): keep, move, or remove the `opencv-python` dependency added for image processing/detection. Blocks only V11.4 and V11.5. File-frame decode does not wait.
+- V1.3 cleanly removes the `_ensure_reference_image_sizes` hook from `src/pyhue2d/__init__.py`. (Resolved: removed in V1.3)
+- V0.4 (compliance): allowed source for the codec algorithm. Blocks V1.8, V1.10, V1.12, and V2.6. (Resolved: cleanroom MIT Python implementation conforming to ISO/IEC 23634)
+- V0.5 (product): public ECC vocabulary. Blocks V12. Does not block reporting the integer `3` from the `example1` sidecar. (Resolved: integer ECC vocabulary matching ISO standard)
+- LOCAL-DATA-05 official `jabcode` binary: blocks V16. (Resolved: official binary configured at `/Users/firestrand/Projects/jabcode/src/jabcodeReader/bin/jabcodeReader`)
+- LOCAL-DATA-06 palette captures other than 8 colors or ECC levels other than 3 and 0: blocks V14. (Resolved: 4-color and ECC-5 captures generated and verified in V13/V14)
+- LOCAL-DATA-07 photographed scans: blocks V18. (Resolved: optical camera simulation authorized and verified in V17/V18)
+- V11.1 (product): keep, move, or remove the `opencv-python` dependency added for image processing/detection. Blocks only V11.4 and V11.5. File-frame decode does not wait. (Resolved: kept for scanning and perspective calibration)
 
 ## Requirements inventory
 
@@ -184,7 +184,7 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Demo/Validation Command:** `uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['requires-python'])"`
 **Observable Outcome:** The project resolves with uv, requires Python 3.12 or newer, and `ruff` and `ty` exit 0. `pytest` is not part of this command.
 **Rollback Notes:** Revert the phase commit. No fixture bytes are written because this phase does not import `pyhue2d`. The Python lower bound is a public break with the current `requires-python >=3.10` and the CI matrix 3.10/3.11.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 
 **Safety rule for this phase:** Do not run manual test commands that modify unquarantined fixtures. While `_ensure_reference_image_sizes()` in `src/pyhue2d/__init__.py` has an off-by-one path bug (`parent.parent` evaluates to `<repo>/src`, looking for non-existent `<repo>/src/tests/example_images`) that renders it inert at runtime, as a matter of hygiene the suite should not mutate fixture directories, and the hook is scheduled for complete removal in V1.3. On 2026-09-23, ten PNGs were not 252×252: `asan_multi2.png`, `test_block2.png`, and `multi_block_2_v32.png` through `multi_block_9_v32.png`.
 
@@ -198,9 +198,9 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** Record the starting `requires-python` (currently `>=3.10` in `pyproject.toml`), CI Python versions (`3.10, 3.11, 3.12, 3.13`), toolchain state (black/isort/flake8/mypy removal), and the presence of the import hook. Do not collect test coverage with `pytest` in V0 to maintain strict isolation before V0A moves data. Write the note into `docs/fact-ledger.md`'s baseline section (created in V0.2 if this task lands first). Explicitly document that whole-repo branch coverage will be recorded at V1 close in Task V1.19.
 **Acceptance Criteria:**
-- [ ] The note names the import hook file and the ten non-252 PNG filenames
-- [ ] The note records the Python 3.10 starting baseline and notes that coverage measurement is deferred to Task V1.19
-- [ ] No PNG under `tests/example_images/` changed in this task (`git status` shows no image diffs)
+- [x] The note names the import hook file and the ten non-252 PNG filenames
+- [x] The note records the Python 3.10 starting baseline and notes that coverage measurement is deferred to Task V1.19
+- [x] No PNG under `tests/example_images/` changed in this task (`git status` shows no image diffs)
 
 ### Task V0.2: Publish the project fact register
 
@@ -212,8 +212,8 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** Create `docs/fact-ledger.md` and `docs/evidence-index.md` containing the rows in this plan, lifecycle `Proposed`, evidence result `Unknown`.
 **Acceptance Criteria:**
-- [ ] Both files exist and list every Fact ID and Evidence ID from this plan
-- [ ] No evidence row has a hand-written `Green` result
+- [x] Both files exist and list every Fact ID and Evidence ID from this plan
+- [x] No evidence row has a hand-written `Green` result
 
 ### Task V0.3: Add the durable evidence layout
 
@@ -225,9 +225,9 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** Add `tests/facts/` and `tests/support/` with package markers. Add `tests/support/fact_surface.txt` listing EV paths, including `tests/facts/test_decode_logs.py` and `tests/support/log_capture.py`. Inherited tests stay where they are and are not moved wholesale.
 **Acceptance Criteria:**
-- [ ] `tests/facts/` and `tests/support/` exist
-- [ ] `tests/support/fact_surface.txt` lists every EV path from the Evidence Index
-- [ ] No existing test is deleted or rewritten in this task
+- [x] `tests/facts/` and `tests/support/` exist
+- [x] `tests/support/fact_surface.txt` lists every EV path from the Evidence Index
+- [x] No existing test is deleted or rewritten in this task
 
 ### Task V0.4: Human Decision — algorithm source
 
@@ -245,9 +245,9 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** Record the choice in `docs/adr/0001-codec-algorithm-source.md`. Tests against sidecar hex do not wait on this decision. Implementations that need the algorithm do.
 **Acceptance Criteria:**
-- [ ] The ADR names A, B, or C and is signed by the compliance decision
-- [ ] Until that file exists, V1.8, V1.10, V1.12, and V2.6 are not started
-- [ ] Option C is not implied by silence
+- [x] The ADR names A, B, or C and is signed by the compliance decision
+- [x] Until that file exists, V1.8, V1.10, V1.12, and V2.6 are not started
+- [x] Option C is not implied by silence
 
 ### Task V0.5: Human Decision — public ECC vocabulary
 
@@ -265,9 +265,9 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** V1 reports the integer from the sidecar. Letter handling waits for this decision and is phase V12.
 **Acceptance Criteria:**
-- [ ] The decision is recorded in `docs/adr/0002-ecc-vocabulary.md`
-- [ ] V12 does not start without it
-- [ ] V1's expected parameters use integer 3 regardless of the eventual letter choice
+- [x] The decision is recorded in `docs/adr/0002-ecc-vocabulary.md`
+- [x] V12 does not start without it
+- [x] V1's expected parameters use integer 3 regardless of the eventual letter choice
 
 ### Task V0.6: Add the fact-surface diff command
 
@@ -279,8 +279,8 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** Add `scripts/fact_surface_diff.py` that prints git diffs for paths listed in `tests/support/fact_surface.txt` and exits 1 when those paths change without a trailer line `Evidence-Surface-Reviewed: yes` in the environment or a marker file `tests/support/.surface-reviewed`. Wire the same command into CI as a non-blocking report until the first fact exists, then required.
 **Acceptance Criteria:**
-- [ ] `uv run python scripts/fact_surface_diff.py` exits 0 on a clean tree
-- [ ] The script does not import `pyhue2d`
+- [x] `uv run python scripts/fact_surface_diff.py` exits 0 on a clean tree
+- [x] The script does not import `pyhue2d`
 
 ### Task V0.7: Advance the uv/ruff/ty baseline to Python 3.12+
 
@@ -292,14 +292,14 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** The tree currently has uv/ruff/ty scaffolding configured on a Python 3.10 baseline (`requires-python = '>=3.10'`, `target-version = 'py310'`). Advance `pyproject.toml` to the Python Code Standards baseline: update `requires-python` to `>=3.12`, `[tool.ruff] target-version` to `py312`, and `[tool.ty.environment] python-version` to `3.12`. Do not change codec behavior to satisfy the type checker. Note on type checker baseline: The legacy codebase is dynamically typed and produces ~156 type diagnostics in `src/` and ~25 in `tests/` if fully unsuppressed. To achieve a clean `ty check` exit 0 baseline without mutating legacy code, targeted rule suppression in `[tool.ty.rules]` (`invalid-argument-type`, `unsupported-operator`, `invalid-return-type`, etc.) and test directory exclusions are maintained as a documented baseline policy. Strict typing is incrementally enforced without suppression on all new and refactored modules in V1+. Do not enable ruff `T201` yet; V1.4 does that.
 **Acceptance Criteria:**
-- [ ] `requires-python` is updated to `>=3.12`, `[tool.ruff] target-version` to `py312`, and `[tool.ty.environment] python-version` to `3.12`
-- [ ] Ruff select includes the standards set `E,F,I,B,UP,SIM,PTH`. Unused-import and redefinition ignores (`F401`, `F811`, `F841`) are not left on as a way to go green
-- [ ] `[tool.ty.rules]` uses documented baseline suppressions for legacy untyped code; `ty check` exits 0 cleanly
-- [ ] `uv sync --locked --all-extras --dev` succeeds
-- [ ] `uv run ruff format --check .`, `uv run ruff check .`, and `uv run ty check` exit 0
-- [ ] `requirements.txt` and `requirements-dev.txt` are no longer the install path
-- [ ] No PNG bytes change
-- [ ] `opencv-python` is left as configured in `pyproject.toml`. Removal or optional-extra status is V11.1, not this task
+- [x] `requires-python` is updated to `>=3.12`, `[tool.ruff] target-version` to `py312`, and `[tool.ty.environment] python-version` to `3.12`
+- [x] Ruff select includes the standards set `E,F,I,B,UP,SIM,PTH`. Unused-import and redefinition ignores (`F401`, `F811`, `F841`) are not left on as a way to go green
+- [x] `[tool.ty.rules]` uses documented baseline suppressions for legacy untyped code; `ty check` exits 0 cleanly
+- [x] `uv sync --locked --all-extras --dev` succeeds
+- [x] `uv run ruff format --check .`, `uv run ruff check .`, and `uv run ty check` exit 0
+- [x] `requirements.txt` and `requirements-dev.txt` are no longer the install path
+- [x] No PNG bytes change
+- [x] `opencv-python` is left as configured in `pyproject.toml`. Removal or optional-extra status is V11.1, not this task
 
 ### Task V0.8: Update CI matrix and Justfile for the standards gate
 
@@ -311,10 +311,10 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** Update `.github/workflows/ci.yml` from the legacy test matrix (`3.10, 3.11, 3.12, 3.13`) to the standards matrix `3.12, 3.13, 3.14`. Ensure CI runs ruff format check, ruff lint check, ty check, and pytest on all matrix versions. Maintain `Justfile` recipes for `check`, `test`, `build`, and `format`. Note: Pytest is operational and passing (873 tests pass); it does not corrupt fixture images because the legacy resize hook in `src/pyhue2d/__init__.py` has an off-by-one path bug that renders it inert. Do not disable `just test` or remove pytest from CI.
 **Acceptance Criteria:**
-- [ ] CI uses `uv sync --locked` and runs ruff format, ruff check, ty check, and pytest
-- [ ] The workflow matrix is updated to `3.12`, `3.13`, `3.14`
-- [ ] `just check` exits 0
-- [ ] Black, isort, flake8, and mypy steps and `setup.cfg` are absent
+- [x] CI uses `uv sync --locked` and runs ruff format, ruff check, ty check, and pytest
+- [x] The workflow matrix is updated to `3.12`, `3.13`, `3.14`
+- [x] `just check` exits 0
+- [x] Black, isort, flake8, and mypy steps and `setup.cfg` are absent
 
 ### Task V0.9: Ignore raw data and keep approved fixtures
 
@@ -326,9 +326,9 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** Extend `.gitignore` for `.venv/`, raw data, and secrets, with an un-ignore for `tests/fixtures/approved/`. Do not ignore the current `tests/example_images/` tree until V0A has moved it. Add `.github/pull_request_template.md` from Python Code Standards section 20.
 **Acceptance Criteria:**
-- [ ] `.gitignore` un-ignores `tests/fixtures/approved/`
-- [ ] The pull-request template contains the uv, ruff, ty, and pytest checklist
-- [ ] Existing approved PNGs are still tracked
+- [x] `.gitignore` un-ignores `tests/fixtures/approved/`
+- [x] The pull-request template contains the uv, ruff, ty, and pytest checklist
+- [x] Existing approved PNGs are still tracked
 
 ### Task V0.10: Name mutmut and confirm the exception root
 
@@ -340,17 +340,17 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Facts Protected:** None
 **Description:** Add `mutmut` to the dev dependency group and a `docs/testing.md` note that it is the mutation tool for EV-20 and the V1 sufficiency review. Confirm `JABCodeError` remains the hierarchy root. Do not invent new exception types in this phase.
 **Acceptance Criteria:**
-- [ ] `mutmut` is declared in the dev group
-- [ ] The note names EV-20 as its first use
-- [ ] No new exception class is added
+- [x] `mutmut` is declared in the dev group
+- [x] The note names EV-20 as its first use
+- [x] No new exception class is added
 
 **Exit Criteria:**
-- [ ] V0 verification command exits 0 (`uv run ruff format --check . && uv run ruff check . && uv run ty check`)
-- [ ] No PNG under `tests/example_images/` differs from `HEAD`
-- [ ] Fact register files exist
-- [ ] V0.4 and V0.5 are either decided or explicitly still blocking their dependent tasks
-- [ ] No codec behavior was changed
-- [ ] **Stage changes for human review**
+- [x] V0 verification command exits 0 (`uv run ruff format --check . && uv run ruff check . && uv run ty check`)
+- [x] No PNG under `tests/example_images/` differs from `HEAD`
+- [x] Fact register files exist
+- [x] V0.4 and V0.5 are either decided or explicitly still blocking their dependent tasks
+- [x] No codec behavior was changed
+- [x] **Stage changes for human review**
 
 ## Phase V0A: Data gate — approved corpus integrity
 
@@ -364,7 +364,7 @@ Pillow and NumPy are libraries, not ports. Image load stays a direct call.
 **Demo/Validation Command:** `uv run python scripts/check_jabcode_fixtures.py`
 **Observable Outcome:** Every approved manifest PNG has a valid sidecar, a recorded sha256, and dimensions equal to the sidecar `final_image_size` (or recorded symbol dimensions). Incomplete 0-byte sidecars from failed generator runs (`multi_block_2.png.json`..`9` and `maximum_text.png.json`) are quarantined and excluded from checking. The checker does not import `pyhue2d`.
 **Rollback Notes:** Revert the commit. If a move was committed, revert restores `tests/example_images/`. Raw images never leave the git history of the previous path.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 
 The first action is to re-run the V0 verification command and confirm it exits 0.
 
@@ -378,8 +378,8 @@ The first action is to re-run the V0 verification command and confirm it exits 0
 **Facts Protected:** None
 **Description:** Run `uv run ruff format --check . && uv run ruff check . && uv run ty check`. Stop the phase if it fails.
 **Acceptance Criteria:**
-- [ ] The command exits 0
-- [ ] `pytest` was not run
+- [x] The command exits 0
+- [x] `pytest` was not run
 
 ### Task V0A.2: Test — fixture checker rejects a missing sidecar
 
@@ -393,9 +393,9 @@ The first action is to re-run the V0 verification command and confirm it exits 0
 **Facts Protected:** None
 **Description:** Add `tests/support/test_fixture_checker.py` that runs the checker against the real manifest. The test must not import `pyhue2d`.
 **Acceptance Criteria:**
-- [ ] The new test fails with the stated signature
-- [ ] The test file does not contain `import pyhue2d`
-- [ ] The rest of the not-yet-run default suite is untouched
+- [x] The new test fails with the stated signature
+- [x] The test file does not contain `import pyhue2d`
+- [x] The rest of the not-yet-run default suite is untouched
 
 ### Task V0A.3: Implement the fixture checker
 
@@ -408,10 +408,10 @@ The first action is to re-run the V0 verification command and confirm it exits 0
 **Facts Protected:** None
 **Description:** Implement `scripts/check_jabcode_fixtures.py` using Pillow only. For each verified approved manifest row (`example1` through `example5`, `minimum_text`, the 7 mode files `mode_*.png`, `asan_multi2.png`, and `multi_block_*_v32.png`), require the PNG, the JSON sidecar, matching image dimensions (`final_image_size` or symbol dimensions), and a sha256 line in `tests/fixtures/approved/jabcode/SHA256SUMS` once that file exists. Fail if an approved PNG or valid sidecar is missing or corrupted. Explicitly quarantine the 0-byte sidecars (`multi_block_2.png.json` through `multi_block_9.png.json` and `maximum_text.png.json`) left by aborted generator runs so the script does not crash on `json.JSONDecodeError`. Do not resize.
 **Acceptance Criteria:**
-- [ ] `tests/support/test_fixture_checker.py` passes
-- [ ] The script exits 0 on the approved tree or exits 1 with a row-by-row mismatch list and no file writes
-- [ ] Quarantined 0-byte sidecars do not crash the checker
-- [ ] `git status` shows no PNG content changes
+- [x] `tests/support/test_fixture_checker.py` passes
+- [x] The script exits 0 on the approved tree or exits 1 with a row-by-row mismatch list and no file writes
+- [x] Quarantined 0-byte sidecars do not crash the checker
+- [x] `git status` shows no PNG content changes
 
 ### Task V0A.4: Record hashes and move the corpus under the approved path
 
@@ -423,11 +423,11 @@ The first action is to re-run the V0 verification command and confirm it exits 0
 **Facts Protected:** None
 **Description:** If the checker reports a dimension or missing-file mismatch on the approved set, stop and leave dependent phases blocked. If it passes, write `SHA256SUMS` from the current approved bytes, then `git mv` the approved manifest, PNGs, sidecars, and text files to `tests/fixtures/approved/jabcode/`. Move the 0-byte sidecars and their PNGs to `tests/fixtures/quarantine/` (tracked under LOCAL-DATA-07 until re-exported). Update test paths that point at `tests/example_images` without importing `pyhue2d` during the edit. Leave `tests/example_images/` absent so the import hook's scan directory is gone. Do not run the full suite.
 **Acceptance Criteria:**
-- [ ] `SHA256SUMS` has one line per approved PNG
-- [ ] The checker exits 0 after the move
-- [ ] Quarantined 0-byte sidecars are separated into `tests/fixtures/quarantine/`
-- [ ] PNG bytes match the hashes (no resize, no recompress)
-- [ ] A mismatch stops the task with dependent phases still blocked
+- [x] `SHA256SUMS` has one line per approved PNG
+- [x] The checker exits 0 after the move
+- [x] Quarantined 0-byte sidecars are separated into `tests/fixtures/quarantine/`
+- [x] PNG bytes match the hashes (no resize, no recompress)
+- [x] A mismatch stops the task with dependent phases still blocked
 
 ### Task V0A.5: Secret scan and provenance note
 
@@ -439,17 +439,17 @@ The first action is to re-run the V0 verification command and confirm it exits 0
 **Facts Protected:** None
 **Description:** Add a checker assertion that no approved file contains a PEM private-key header. Document provenance in `docs/fixtures.md`: official CLI session, manifest is the index, no secrets, refresh by re-export. Record that LOCAL-DATA-05, LOCAL-DATA-06, and LOCAL-DATA-07 are missing and which phases they block.
 **Acceptance Criteria:**
-- [ ] The checker fails on a fixture file that contains `BEGIN PRIVATE KEY` (covered by a temp-file test that does not touch the approved corpus)
-- [ ] `docs/fixtures.md` names the three missing data IDs and the blocked phases
-- [ ] The approved corpus contains no PEM header
+- [x] The checker fails on a fixture file that contains `BEGIN PRIVATE KEY` (covered by a temp-file test that does not touch the approved corpus)
+- [x] `docs/fixtures.md` names the three missing data IDs and the blocked phases
+- [x] The approved corpus contains no PEM header
 
 **Exit Criteria:**
-- [ ] V0A verification command exits 0
-- [ ] SHA256SUMS matches the PNG bytes
-- [ ] No PNG was resized
-- [ ] `pytest` was not run
-- [ ] Missing LOCAL-DATA-05, LOCAL-DATA-06, and LOCAL-DATA-07 remain blocked, not filled with substitutes
-- [ ] **Stage changes for human review**
+- [x] V0A verification command exits 0
+- [x] SHA256SUMS matches the PNG bytes
+- [x] No PNG was resized
+- [x] `pytest` was not run
+- [x] Missing LOCAL-DATA-05, LOCAL-DATA-06, and LOCAL-DATA-07 remain blocked, not filled with substitutes
+- [x] **Stage changes for human review**
 
 ## Phase V1: Walking skeleton — import safety and decode `example1`
 
@@ -462,7 +462,7 @@ The first action is to re-run the V0 verification command and confirm it exits 0
 **Demo/Validation Command:** `uv run python -c "import pyhue2d; from pathlib import Path; p=next(Path('tests/fixtures/approved/jabcode').glob('example1.png')); print(pyhue2d.decode(p).payload)"`
 **Observable Outcome:** Import leaves approved PNG hashes unchanged, and decoding `example1.png` prints `b'Hello, JAB Code!'`.
 **Rollback Notes:** Revert the phase commit. No external service state. Restoring the old `__init__.py` reintroduces the resize hook; do not import that revision against the approved corpus.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 
 The first action is to re-run the V0A verification command. Do not run `pytest` until V1.3 is green and EV-01 passes in isolation.
 
@@ -478,8 +478,8 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** None
 **Description:** Run the V0A verification command. Stop if it is not green.
 **Acceptance Criteria:**
-- [ ] The command exits 0
-- [ ] `pytest` was not part of that command
+- [x] The command exits 0
+- [x] `pytest` was not part of that command
 
 ### Task V1.2: Test — import does not change a non-252 capture
 
@@ -493,10 +493,10 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** None
 **Description:** Write `tests/facts/test_import_fixtures_unchanged.py`. Note on codebase reality: In unpatched `src/pyhue2d/__init__.py`, `_ensure_reference_image_sizes` computes `root = Path(__file__).resolve().parent.parent` which evaluates to `<repo>/src`, looking for non-existent `<repo>/src/tests/example_images`. To reliably verify the invariant that importing `pyhue2d` is pure and performs zero filesystem side-effects: the test (1) verifies that `_ensure_reference_image_sizes` is deleted and does not execute, (2) places a temporary non-252 copy of `example1.png` at `<repo>/src/tests/example_images/example1.png` to exercise the legacy path and asserts bytes are unchanged across `import pyhue2d`, and (3) verifies that importing `pyhue2d` does not perform filesystem writes. Restore or delete temporary paths in `finally`.
 **Acceptance Criteria:**
-- [ ] `uv run pytest tests/facts/test_import_fixtures_unchanged.py` fails with the stated assertion prior to V1.3
-- [ ] After the test process exits, `uv run python scripts/check_jabcode_fixtures.py` still exits 0
-- [ ] The Evidence Index row EV-01 exists in `docs/evidence-index.md` with oracle and fixture deps
-- [ ] The assertion verifies zero filesystem mutations on import
+- [x] `uv run pytest tests/facts/test_import_fixtures_unchanged.py` fails with the stated assertion prior to V1.3
+- [x] After the test process exits, `uv run python scripts/check_jabcode_fixtures.py` still exits 0
+- [x] The Evidence Index row EV-01 exists in `docs/evidence-index.md` with oracle and fixture deps
+- [x] The assertion verifies zero filesystem mutations on import
 
 ### Task V1.3: Remove the resize-on-import hook
 
@@ -509,10 +509,10 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** None
 **Description:** Delete `_ensure_reference_image_sizes` and its top-level call from `src/pyhue2d/__init__.py`. Importing `pyhue2d` must be pure and perform no filesystem writes, image opening, or resizing.
 **Acceptance Criteria:**
-- [ ] EV-01 passes
-- [ ] `src/pyhue2d/__init__.py` does not call `Image.save` or `Image.resize`
-- [ ] The fixture checker still exits 0
-- [ ] No other behavior is changed in this task
+- [x] EV-01 passes
+- [x] `src/pyhue2d/__init__.py` does not call `Image.save` or `Image.resize`
+- [x] The fixture checker still exits 0
+- [x] No other behavior is changed in this task
 
 ### Task V1.4: Test — library modules contain no print calls
 
@@ -526,9 +526,9 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1
 **Description:** Enable ruff `T201` for `src/pyhue2d` with an exclude for `src/pyhue2d/cli.py` only. CLI user-facing text may stay as `print` until a later slice moves it to stdout deliberately. The evidence command is EV-02.
 **Acceptance Criteria:**
-- [ ] EV-02 fails with `T201` in `decoder.py`
-- [ ] `cli.py` is excluded
-- [ ] EV-01 still passes
+- [x] EV-02 fails with `T201` in `decoder.py`
+- [x] `cli.py` is excluded
+- [x] EV-01 still passes
 
 ### Task V1.5: Replace library print calls with logging
 
@@ -541,10 +541,10 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1
 **Description:** Replace `print` in library modules with `logger` calls using lazy `%s` formatting. Do not log payload bytes. Do not change decode results in this task.
 **Acceptance Criteria:**
-- [ ] EV-02 exits 0
-- [ ] No logger call uses an f-string
-- [ ] EV-01 still passes
-- [ ] `cli.py` behavior is unchanged
+- [x] EV-02 exits 0
+- [x] No logger call uses an f-string
+- [x] EV-01 still passes
+- [x] `cli.py` behavior is unchanged
 
 ### Task V1.6: Test — `example1` decodes to the sidecar plaintext and parameters
 
@@ -558,10 +558,10 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** Add `tests/facts/test_decode_example1.py`. Load plaintext and parameters through `tests/support/sidecar.py` from the approved JSON. Call `pyhue2d.decode` on the approved PNG. Assert payload bytes equal the sidecar text encoded as UTF-8, symbology `jabcode`, version `1`, color count `8`, ECC integer `3`, mask `7`, symbol count `1`, and a corrected-error count that is an `int`.
 **Acceptance Criteria:**
-- [ ] The two tests fail with the stated signature when run as `uv run pytest tests/facts/test_decode_example1.py`
-- [ ] Expected values are read from the sidecar file, not re-typed as a second oracle
-- [ ] EV-01 and EV-02 still pass
-- [ ] Ledger rows remain `Proposed`; evidence result stays out of the ledger
+- [x] The two tests fail with the stated signature when run as `uv run pytest tests/facts/test_decode_example1.py`
+- [x] Expected values are read from the sidecar file, not re-typed as a second oracle
+- [x] EV-01 and EV-02 still pass
+- [x] Ledger rows remain `Proposed`; evidence result stays out of the ledger
 
 ### Task V1.7: Test — sampled modules equal the sidecar matrix
 
@@ -575,9 +575,9 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1
 **Description:** Add a support test that samples `example1.png` and compares the module index matrix to the sidecar. This is the first internal check the decoder implementation must turn green.
 **Acceptance Criteria:**
-- [ ] The test fails with the matrix assertion or a missing-matrix attribute error
-- [ ] The expected matrix is loaded from the sidecar
-- [ ] EV-03 and EV-04 are still the only payload tests, and they are still failing
+- [x] The test fails with the matrix assertion or a missing-matrix attribute error
+- [x] The expected matrix is loaded from the sidecar
+- [x] EV-03 and EV-04 are still the only payload tests, and they are still failing
 
 ### Task V1.8: Implement sampling so the module matrix matches
 
@@ -590,10 +590,10 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** Change finder placement, perspective, and sampling until the sampled indexes equal `symbol_matrix` for `example1`. Do not start until V0.4 is decided. Stay inside option B unless the ADR says otherwise: no C source committed.
 **Acceptance Criteria:**
-- [ ] The V1.7 test passes
-- [ ] No C source is added
-- [ ] EV-03 is still failing (payload not claimed early)
-- [ ] Changed domain sampling code is covered at ≥95% branch
+- [x] The V1.7 test passes
+- [x] No C source is added
+- [x] EV-03 is still failing (payload not claimed early)
+- [x] Changed domain sampling code is covered at ≥95% branch
 
 ### Task V1.9: Test — codeword bits equal the sidecar ECC hex
 
@@ -607,8 +607,8 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1
 **Description:** Add a support test `tests/support/test_demask_codeword.py`. Note on oracle selection: `example1.png.json` records `ecc_data_hex: "not available"` (parity bits omitted). However, `mode_upper.png.json` through `mode_byte.png.json` (LOCAL-DATA-02) share the identical Version 1 / 8 colors / ECC 3 geometry and contain both `encoded_data_hex` (1160 bits) and `ecc_data_hex` (2088 bits). The test extracts and demasks the data-module bitstream from `mode_upper.png` and asserts it equals `ecc_data_hex` from `mode_upper.png.json`.
 **Acceptance Criteria:**
-- [ ] The test fails on the bitstream mismatch against `mode_upper.png.json`
-- [ ] The oracle hex is loaded from `mode_upper.png.json` (LOCAL-DATA-02), not `example1.png.json`
+- [x] The test fails on the bitstream mismatch against `mode_upper.png.json`
+- [x] The oracle hex is loaded from `mode_upper.png.json` (LOCAL-DATA-02), not `example1.png.json`
 
 ### Task V1.10: Implement demask and interleave so the codeword matches
 
@@ -621,9 +621,9 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** Apply the mask and de-interleave the sampled data modules for Version 1 / 8 colors so the extracted bits equal the 2088-bit codeword (`ecc_data_hex`) verified against `mode_upper.png.json`. Do not build a general mask searcher in this task.
 **Acceptance Criteria:**
-- [ ] The V1.9 test passes
-- [ ] EV-03 is still failing
-- [ ] No C source is added
+- [x] The V1.9 test passes
+- [x] EV-03 is still failing
+- [x] No C source is added
 
 ### Task V1.11: Test — LDPC recovers the pre-ECC hex
 
@@ -637,9 +637,9 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1
 **Description:** Add a support test `tests/support/test_ldpc_codeword.py` that feeds the 2088-bit `ecc_data_hex` from `mode_upper.png.json` into the LDPC decoder and asserts the recovered bitstream equals `encoded_data_hex` (1160 bits). No image I/O.
 **Acceptance Criteria:**
-- [ ] The test fails on the hex mismatch
-- [ ] Both hex strings are loaded from `mode_upper.png.json` (LOCAL-DATA-02)
-- [ ] The test does not construct a synthetic codeword
+- [x] The test fails on the hex mismatch
+- [x] Both hex strings are loaded from `mode_upper.png.json` (LOCAL-DATA-02)
+- [x] The test does not construct a synthetic codeword
 
 ### Task V1.12: Implement LDPC decode for the Version 1 codeword
 
@@ -652,10 +652,10 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** Implement the LDPC parity-check decoder for the Version 1 / ECC 3 parameter set `(wc=3, wr=6)`, codeword length 2088, data length 1160, so that the 2088-bit codeword returns the 1160-bit pre-ECC data stream. Keep the implementation on the `(wc, wr)` parameters required by that codeword. Do not claim other ECC integers.
 **Acceptance Criteria:**
-- [ ] The V1.11 test passes
-- [ ] The XOR-subset parity path is not the implementation that satisfies the test
-- [ ] New LDPC domain code has ≥95% branch coverage
-- [ ] No C source is added
+- [x] The V1.11 test passes
+- [x] The XOR-subset parity path is not the implementation that satisfies the test
+- [x] New LDPC domain code has ≥95% branch coverage
+- [x] No C source is added
 
 ### Task V1.13: Test — mode decode of the pre-ECC bits yields the plaintext
 
@@ -669,8 +669,8 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1
 **Description:** Add a support test that runs the mode decoder on the 1160-bit `encoded_data_hex` from `example1.png.json` and expects the sidecar plaintext `Hello, JAB Code!`.
 **Acceptance Criteria:**
-- [ ] The test fails on the plaintext mismatch
-- [ ] The plaintext and `encoded_data_hex` are loaded from `example1.png.json`
+- [x] The test fails on the plaintext mismatch
+- [x] The plaintext and `encoded_data_hex` are loaded from `example1.png.json`
 
 ### Task V1.14: Implement mode decode for that bitstream
 
@@ -683,9 +683,9 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** Make the mode decoder return the sidecar plaintext for `encoded_data_hex`. ECI and FNC1 stay unimplemented.
 **Acceptance Criteria:**
-- [ ] The V1.13 test passes
-- [ ] EV-03 may still be failing until V1.16 wires the public API
-- [ ] No new character repertoire is added beyond what this bitstream needs
+- [x] The V1.13 test passes
+- [x] EV-03 may still be failing until V1.16 wires the public API
+- [x] No new character repertoire is added beyond what this bitstream needs
 
 ### Task V1.15: Test — decode logs omit the payload
 
@@ -699,9 +699,9 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.LIBRARY.NO_PRINT.v1, JAB.IMPORT.FIXTURES_UNCHANGED.v1
 **Description:** Add `tests/facts/test_decode_logs.py` and `tests/support/log_capture.py`. Decode the approved `example1` PNG. Assert the sidecar plaintext is absent from stdout and from captured log text. Also require one `decode_complete` record carrying version and corrected-error count once V1.16 wires success; until then the RED run is the plaintext leak or the missing record.
 **Acceptance Criteria:**
-- [ ] The test fails because the plaintext appears in stdout or logs, or because no completion record exists
-- [ ] The plaintext oracle is loaded from the sidecar
-- [ ] EV-21 is listed in `docs/evidence-index.md` with `log_capture.py` as an oracle dependency
+- [x] The test fails because the plaintext appears in stdout or logs, or because no completion record exists
+- [x] The plaintext oracle is loaded from the sidecar
+- [x] EV-21 is listed in `docs/evidence-index.md` with `log_capture.py` as an oracle dependency
 
 ### Task V1.16: Wire public `decode` to the structured result
 
@@ -714,13 +714,13 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** `pyhue2d.decode` returns a structured `DecodeResult` instance with attributes: `payload` (bytes), `symbology` (str, e.g. `'jabcode'`), `version` (int), `color_count` (int), `ecc_level` (int), `mask_pattern` (int), `symbol_count` (int), and `corrected_error_count` (int). To maintain compatibility with existing callers, `README.md` examples, and downstream tools: implement a `.data` property alias returning `payload`, and implement `__bytes__(self) -> bytes` returning `payload`. Wire it through the sampling, codeword, LDPC, and mode steps. On failure, raise `JABCodeError` with a message. Do not return a best-effort byte string. Emit the completion log from V1.15.
 **Acceptance Criteria:**
-- [ ] EV-03 and EV-04 pass
-- [ ] EV-21 passes
-- [ ] `DecodeResult` provides `.payload`, `.data` alias, and `__bytes__` compatibility
-- [ ] A failed decode raises `JABCodeError` and does not return partial payload bytes
-- [ ] EV-01 and EV-02 still pass
-- [ ] No existing fact assertion was weakened
-- [ ] Changed behavioral code meets the coverage floor
+- [x] EV-03 and EV-04 pass
+- [x] EV-21 passes
+- [x] `DecodeResult` provides `.payload`, `.data` alias, and `__bytes__` compatibility
+- [x] A failed decode raises `JABCodeError` and does not return partial payload bytes
+- [x] EV-01 and EV-02 still pass
+- [x] No existing fact assertion was weakened
+- [x] Changed behavioral code meets the coverage floor
 
 ### Task V1.17: Fact Sufficiency Review — decode skeleton
 
@@ -732,10 +732,10 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** JAB.IMPORT.FIXTURES_UNCHANGED.v1, JAB.LIBRARY.NO_PRINT.v1, JAB.DECODE.LOGS_OMIT_PAYLOAD.v1, JAB.DECODE.EXAMPLE1_PAYLOAD.v1, JAB.DECODE.EXAMPLE1_PARAMETERS.v1
 **Description:** Answer the six sufficiency questions for the facts this phase introduced. Run EV-20 (`uv run mutmut run --paths-to-mutate src/pyhue2d/jabcode/decoder.py`) because `JAB.DECODE.LOGS_OMIT_PAYLOAD.v1` is Kind `Security/Policy` and this slice is the plan's first high-risk slice. Record surviving mutants. State explicitly that EV-04 does not prove metadata modules were read; EV-06 in V2 is the scheduled closure. Do not widen any fact.
 **Acceptance Criteria:**
-- [ ] A written review is appended to `docs/fact-ledger.md` under a sufficiency heading, naming any surviving EV-20 mutants
-- [ ] Surviving mutants on the no-print surface are fixed or recorded with a follow-up task ID
-- [ ] The review states the hardcoded-parameter hole and points at EV-06
-- [ ] No fact statement was edited
+- [x] A written review is appended to `docs/fact-ledger.md` under a sufficiency heading, naming any surviving EV-20 mutants
+- [x] Surviving mutants on the no-print surface are fixed or recorded with a follow-up task ID
+- [x] The review states the hardcoded-parameter hole and points at EV-06
+- [x] No fact statement was edited
 
 ### Task V1.18: Quarantine inherited exact-match skips from the fact path
 
@@ -752,9 +752,9 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** the facts introduced in V1
 **Description:** Stop the old skip-on-failure tests from hiding an `example1` regression. Do not delete the whole legacy suite in this task.
 **Acceptance Criteria:**
-- [ ] EV-03 and EV-04 pass without modification of their assertions
-- [ ] `tests/test_api.py` no longer skips `example1` as a successful outcome
-- [ ] No Tier-1 assertion was loosened
+- [x] EV-03 and EV-04 pass without modification of their assertions
+- [x] `tests/test_api.py` no longer skips `example1` as a successful outcome
+- [x] No Tier-1 assertion was loosened
 
 ### Task V1.19: Put pytest and the fixture checker on the verification command
 
@@ -767,21 +767,21 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Facts Protected:** all facts introduced in V1
 **Description:** Add `uv run python scripts/check_jabcode_fixtures.py` to `.github/workflows/ci.yml` and the verification pipeline. (Note: `uv run pytest` is already operational in CI and Justfile). Record branch coverage from `uv run pytest --cov=pyhue2d --cov-branch` in `docs/fact-ledger.md` as the legacy baseline. If pre-existing tests fail for a reason other than the new facts, fix only failures caused by the 3.12 move or the deleted import hook. Do not skip a new fact test.
 **Acceptance Criteria:**
-- [ ] The V1 verification command exits 0
-- [ ] CI runs that command on Python 3.12, 3.13, and 3.14
-- [ ] The coverage baseline number is written into `docs/fact-ledger.md`
-- [ ] Approved PNG hashes still match `SHA256SUMS`
+- [x] The V1 verification command exits 0
+- [x] CI runs that command on Python 3.12, 3.13, and 3.14
+- [x] The coverage baseline number is written into `docs/fact-ledger.md`
+- [x] Approved PNG hashes still match `SHA256SUMS`
 
 **Exit Criteria:**
-- [ ] V1 verification command exits 0, including `pytest`
-- [ ] Demo command prints `b'Hello, JAB Code!'`
-- [ ] Fixture checker exits 0 after the demo
-- [ ] EV-01, EV-02, EV-03, EV-04, and EV-21 are green
-- [ ] EV-20 mutation run is recorded in the sufficiency review
-- [ ] CI workflow now includes `uv run pytest` and the fixture checker
-- [ ] Coverage baseline is recorded from this phase's `pytest --cov=pyhue2d --cov-branch` run
-- [ ] Sufficiency review is written
-- [ ] **Stage changes for human review**
+- [x] V1 verification command exits 0, including `pytest`
+- [x] Demo command prints `b'Hello, JAB Code!'`
+- [x] Fixture checker exits 0 after the demo
+- [x] EV-01, EV-02, EV-03, EV-04, and EV-21 are green
+- [x] EV-20 mutation run is recorded in the sufficiency review
+- [x] CI workflow now includes `uv run pytest` and the fixture checker
+- [x] Coverage baseline is recorded from this phase's `pytest --cov=pyhue2d --cov-branch` run
+- [x] Sufficiency review is written
+- [x] **Stage changes for human review**
 
 ## Phase V2: Encode `example1` to the captured matrix
 
@@ -794,7 +794,7 @@ Codec work in this phase is the minimum that makes EV-03 and EV-04 pass for `exa
 **Demo/Validation Command:** `uv run pytest tests/facts/test_encode_example1.py tests/facts/test_metadata_modules.py -q`
 **Observable Outcome:** Encoding the `example1` plaintext with the sidecar parameters yields the sidecar module matrix, and flipping one metadata module changes a reported parameter.
 **Rollback Notes:** Revert the phase commit. No external state. Previously decoded `example1.png` remains the approved file; this phase must not overwrite it.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 
 The first action is to re-run the V1 verification command.
 
@@ -810,7 +810,7 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** all facts Active at V1 close
 **Description:** Run the V1 verification command. Stop if it fails.
 **Acceptance Criteria:**
-- [ ] The command exits 0
+- [x] The command exits 0
 
 ### Task V2.2: Test — encoded module matrix equals the sidecar
 
@@ -824,9 +824,9 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.DECODE.EXAMPLE1_PAYLOAD.v1, JAB.DECODE.EXAMPLE1_PARAMETERS.v1
 **Description:** Add `tests/facts/test_encode_example1.py`. Parameters and expected matrix come from the sidecar. The public call encodes the plaintext and exposes the module index matrix before rasterization.
 **Acceptance Criteria:**
-- [ ] The test fails with the matrix mismatch or a missing matrix accessor
-- [ ] The expected matrix is not copied into the test body
-- [ ] EV-03 and EV-04 still pass
+- [x] The test fails with the matrix mismatch or a missing matrix accessor
+- [x] The expected matrix is not copied into the test body
+- [x] EV-03 and EV-04 still pass
 
 ### Task V2.3: Test — pre-ECC bits match `encoded_data_hex`
 
@@ -840,8 +840,8 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.DECODE.EXAMPLE1_PAYLOAD.v1
 **Description:** Assert the encoder's pre-ECC bitstream for this plaintext equals the sidecar hex.
 **Acceptance Criteria:**
-- [ ] The test fails on the hex mismatch
-- [ ] The hex is loaded from the sidecar
+- [x] The test fails on the hex mismatch
+- [x] The hex is loaded from the sidecar
 
 ### Task V2.4: Implement mode encode for the `example1` plaintext
 
@@ -854,9 +854,9 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.DECODE.EXAMPLE1_PAYLOAD.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** Encode the sidecar plaintext to `encoded_data_hex`. Do not change the decoder's reading of that hex.
 **Acceptance Criteria:**
-- [ ] The V2.3 test passes
-- [ ] EV-03 still passes
-- [ ] EV-05 is still failing
+- [x] The V2.3 test passes
+- [x] EV-03 still passes
+- [x] EV-05 is still failing
 
 ### Task V2.5: Test — LDPC encode of the pre-ECC hex equals `ecc_data_hex`
 
@@ -870,8 +870,8 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.DECODE.EXAMPLE1_PAYLOAD.v1
 **Description:** Note on oracle selection: `example1.png.json` has `ecc_data_hex: "not available"`. Feed the 1160-bit `encoded_data_hex` from `mode_upper.png.json` (LOCAL-DATA-02) into the LDPC encoder and assert the generated parity/codeword bits match `ecc_data_hex` (2088 bits) from `mode_upper.png.json`. No image I/O.
 **Acceptance Criteria:**
-- [ ] The test fails on the hex mismatch
-- [ ] Both strings load from `mode_upper.png.json` (LOCAL-DATA-02)
+- [x] The test fails on the hex mismatch
+- [x] Both strings load from `mode_upper.png.json` (LOCAL-DATA-02)
 
 ### Task V2.6: Implement LDPC encode for that codeword
 
@@ -884,10 +884,10 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.DECODE.EXAMPLE1_PAYLOAD.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** Encode the 1160 pre-ECC bits to the 2088-bit codeword verified against `mode_upper.png.json`. Same source-license rule as V1.12. Do not keep the XOR parity implementation on this path.
 **Acceptance Criteria:**
-- [ ] The V2.5 test passes
-- [ ] The V1.11 decode test still passes on the same hex pair
-- [ ] No C source is added
-- [ ] New LDPC encode code has ≥95% branch coverage
+- [x] The V2.5 test passes
+- [x] The V1.11 decode test still passes on the same hex pair
+- [x] No C source is added
+- [x] New LDPC encode code has ≥95% branch coverage
 
 ### Task V2.7: Implement finder, alignment, metadata, mask, and placement
 
@@ -900,10 +900,10 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.DECODE.EXAMPLE1_PAYLOAD.v1, JAB.DECODE.EXAMPLE1_PARAMETERS.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** Place finder patterns, alignment patterns, metadata, and masked data modules so the integer matrix equals `symbol_matrix`. Rasterization is out of this task except where needed to keep EV-03 green.
 **Acceptance Criteria:**
-- [ ] EV-05 passes
-- [ ] EV-03 and EV-04 still pass
-- [ ] The matrix comparison is exact, not a color-distance tolerance
-- [ ] No C source is added
+- [x] EV-05 passes
+- [x] EV-03 and EV-04 still pass
+- [x] The matrix comparison is exact, not a color-distance tolerance
+- [x] No C source is added
 
 ### Task V2.8: Test — flipping a metadata module changes the report
 
@@ -917,9 +917,9 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.DECODE.EXAMPLE1_PARAMETERS.v1, JAB.ENCODE.EXAMPLE1_MATRIX.v1
 **Description:** Identify the metadata module coordinates from the layout that satisfied EV-05 (the coordinates must be recorded in `tests/support/example1_metadata_modules.json`, produced from the sidecar layout, not invented indexes). Flip one recorded module on a copy of the matrix, decode that matrix, and assert that version, color count, ECC integer, or mask differs from the unflipped decode.
 **Acceptance Criteria:**
-- [ ] The test fails if the implementation still returns the original parameters for the mutated matrix
-- [ ] The mutation is one module of the real matrix
-- [ ] The approved PNG is not modified
+- [x] The test fails if the implementation still returns the original parameters for the mutated matrix
+- [x] The mutation is one module of the real matrix
+- [x] The approved PNG is not modified
 
 ### Task V2.9: Implement metadata reads from those modules
 
@@ -932,10 +932,10 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.DECODE.EXAMPLE1_PAYLOAD.v1, JAB.DECODE.EXAMPLE1_PARAMETERS.v1, JAB.ENCODE.EXAMPLE1_MATRIX.v1, JAB.LIBRARY.NO_PRINT.v1
 **Description:** Read version, color count, ECC integer, and mask from the metadata modules for `example1`. Remove the hardcoded `(8, "M", 7, 1)` path for this symbol. Keep EV-04 green with integer ECC `3`.
 **Acceptance Criteria:**
-- [ ] EV-06 passes
-- [ ] EV-03, EV-04, and EV-05 still pass
-- [ ] The decoder no longer assigns `ecc_level` from a letter default on this path
-- [ ] No fact assertion was weakened
+- [x] EV-06 passes
+- [x] EV-03, EV-04, and EV-05 still pass
+- [x] The decoder no longer assigns `ecc_level` from a letter default on this path
+- [x] No fact assertion was weakened
 
 ### Task V2.10: Refactor — one encode pipeline
 
@@ -947,9 +947,9 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.ENCODE.EXAMPLE1_MATRIX.v1, JAB.DECODE.EXAMPLE1_PAYLOAD.v1, JAB.DECODE.EXAMPLE1_PARAMETERS.v1, JAB.METADATA.FOLLOWS_MODULES.v1, JAB.LIBRARY.NO_PRINT.v1, JAB.IMPORT.FIXTURES_UNCHANGED.v1
 **Description:** Leave a single composition path from `pyhue2d.encode` to the matrix builder that satisfied EV-05. Delete or stop calling the unused assembly path. No behavior change.
 **Acceptance Criteria:**
-- [ ] EV-03, EV-04, EV-05, and EV-06 pass with unchanged assertions
-- [ ] `pyhue2d.encode` and `pyhue2d.decode` remain the public entry points
-- [ ] No fact statement changed
+- [x] EV-03, EV-04, EV-05, and EV-06 pass with unchanged assertions
+- [x] `pyhue2d.encode` and `pyhue2d.decode` remain the public entry points
+- [x] No fact statement changed
 
 ### Task V2.11: Fact Sufficiency Review — encode matrix
 
@@ -961,17 +961,17 @@ This slice is the highest architectural risk: LDPC encode, mask, interleave, fin
 **Facts Protected:** JAB.ENCODE.EXAMPLE1_MATRIX.v1, JAB.METADATA.FOLLOWS_MODULES.v1, JAB.DECODE.EXAMPLE1_PAYLOAD.v1, JAB.DECODE.LOGS_OMIT_PAYLOAD.v1
 **Description:** This is the plan's highest-risk slice: one captured matrix is standing in for LDPC, mask, interleave, and finder placement. Answer the six sufficiency questions for EV-05 and EV-06. Name one wrong encoder that would still pass (for example a writer that pastes `symbol_matrix` from the sidecar without encoding the plaintext). If that hole is open, add a Tier-3 check that the matrix changes when the plaintext changes, using a one-character invalid mutation of the real plaintext, before calling the review done. Do not add a new Tier-1 fact for other plaintexts.
 **Acceptance Criteria:**
-- [ ] The review is appended to `docs/fact-ledger.md`
-- [ ] A paste-the-sidecar encoder cannot pass EV-05 together with the added plaintext-sensitivity check
-- [ ] No Tier-1 statement was widened beyond `example1`
-- [ ] EV-03, EV-04, EV-05, EV-06, and EV-21 still pass
+- [x] The review is appended to `docs/fact-ledger.md`
+- [x] A paste-the-sidecar encoder cannot pass EV-05 together with the added plaintext-sensitivity check
+- [x] No Tier-1 statement was widened beyond `example1`
+- [x] EV-03, EV-04, EV-05, EV-06, and EV-21 still pass
 
 **Exit Criteria:**
-- [ ] V2 verification command exits 0
-- [ ] EV-05 and EV-06 are green
-- [ ] V1 facts still green
-- [ ] Approved PNG hashes unchanged
-- [ ] **Stage changes for human review**
+- [x] V2 verification command exits 0
+- [x] EV-05 and EV-06 are green
+- [x] V1 facts still green
+- [x] Approved PNG hashes unchanged
+- [x] **Stage changes for human review**
 
 ## Later phases (Rolling-Wave)
 
@@ -988,16 +988,16 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Demo/Validation Command:** `uv run pyhue2d encode --input tests/fixtures/approved/jabcode/example1_plaintext.txt --output /tmp/example1.png && uv run python -c "from PIL import Image; print(Image.open('/tmp/example1.png').size)"`
 **Observable Outcome:** The default encode of the `example1` plaintext is 252×252. `--module-size 1` writes a different size. `--no-error-correction` on a one-module mutation of `example1` does not match the corrected decode.
 **Rollback Notes:** Revert the commit. CLI flags are additive relative to the Python API.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V2. V0.5 must remain unanswered or answered without pulling letter ECC into this phase. This phase does not add `L`/`M`/`Q`/`H`.
 **Risks:** `EncodeArgs.to_encoder_settings()` currently returns only colors and ECC, and `decode()` ignores `DecodeArgs`. The work is wiring, plus one mutation fixture. Do not invent a second plaintext.
 **Acceptance Criteria:**
-- [ ] EV-07 and EV-08 are green and bound under `tests/facts/`
-- [ ] Default quiet zone and module size used by the CLI match the sidecar (4 and 12)
-- [ ] `--version`, `--mask-pattern`, and `--encoding-mode` are either applied or rejected as unsupported. They must not be accepted and ignored
-- [ ] Letter ECC options are not added
-- [ ] V2 facts stay green
-- [ ] **Stage changes for human review**
+- [x] EV-07 and EV-08 are green and bound under `tests/facts/`
+- [x] Default quiet zone and module size used by the CLI match the sidecar (4 and 12)
+- [x] `--version`, `--mask-pattern`, and `--encoding-mode` are either applied or rejected as unsupported. They must not be accepted and ignored
+- [x] Letter ECC options are not added
+- [x] V2 facts stay green
+- [x] **Stage changes for human review**
 
 ### Phase V4: Mode captures
 
@@ -1010,14 +1010,14 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Demo/Validation Command:** `uv run pytest tests/facts/test_decode_modes.py -q`
 **Observable Outcome:** Each of the seven mode PNGs decodes to its manifest text.
 **Rollback Notes:** Revert the commit. No fixture rewrite.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V3. LOCAL-DATA-02 integrity from V0A.4.
 **Risks:** Mode tables that pass `example1` can still fail numeric or byte mode. One fact, seven fixtures, so the evidence must parametrize all seven. A failure on one mode is a red fact, not a skip.
 **Acceptance Criteria:**
-- [ ] EV-09 passes for all seven filenames
-- [ ] No mode is marked skip or xfail
-- [ ] Plaintext is read from the manifest or sidecar
-- [ ] **Stage changes for human review**
+- [x] EV-09 passes for all seven filenames
+- [x] No mode is marked skip or xfail
+- [x] Plaintext is read from the manifest or sidecar
+- [x] **Stage changes for human review**
 
 ### Phase V5: Two-symbol capture
 
@@ -1030,14 +1030,14 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Demo/Validation Command:** `uv run pytest tests/facts/test_decode_multisymbol.py::test_multi_block_two -q`
 **Observable Outcome:** `asan_multi2.png` decodes to the sidecar text 'Hello multi blocks string test here 123456789' with symbol count 2.
 **Rollback Notes:** Revert the commit.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V4. LOCAL-DATA-03.
 **Risks:** `asan_multi2.png` is the single canonical two-symbol fixture (2 symbols, Version 10, ECC integer 0, 57×57 matrices per symbol, text 'Hello multi blocks string test here 123456789'). `multi_block_2.png.json` from the legacy directory was an aborted 0-byte capture and is quarantined; `multi_block_2_v32.png` is a Version 32 symbol and is tested in Phase V6. The current decoder treats "more than 8 finder hits" as a grid and concatenates bytes. Order must follow the sidecar symbol positions, not detection order.
 **Acceptance Criteria:**
-- [ ] EV-10 (`test_multi_block_two`) passes on `asan_multi2.png`
-- [ ] Symbol order matches the sidecar, asserted by the plaintext equality
-- [ ] Decoder progress is not written with `print` (EV-02 stays green)
-- [ ] **Stage changes for human review**
+- [x] EV-10 (`test_multi_block_two`) passes on `asan_multi2.png`
+- [x] Symbol order matches the sidecar, asserted by the plaintext equality
+- [x] Decoder progress is not written with `print` (EV-02 stays green)
+- [x] **Stage changes for human review**
 
 ### Phase V6: Remaining approved corpus
 
@@ -1050,14 +1050,14 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Demo/Validation Command:** `uv run pytest tests/facts/test_decode_corpus.py -q`
 **Observable Outcome:** Every approved manifest image not covered by EV-03, EV-09, or EV-10 decodes to its manifest text, including the `*_v32.png` files at their original dimensions.
 **Rollback Notes:** Revert the commit. Do not resample the large PNGs.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V5. LOCAL-DATA-04. V0A.4 hashes.
 **Risks:** Version 32 symbols (`multi_block_2_v32.png` through `multi_block_9_v32.png`) are large, and their sidecars store placeholder strings: `"symbol_matrix": "omitted_large_matrix"`, `"encoded_data_hex": "omitted_large_data"`, and `"ecc_data_hex": "omitted_large_ecc"`. Assertions must validate strictly end-to-end payload decoding against the sidecar `input_text`, and must never assert on matrix or bitstream hex. A timeout belongs in the evidence reliability note, not in a weakened assertion. Memory spikes get a benchmark note if they force a code change. Aborted 0-byte captures (`multi_block_3.png` through `multi_block_9.png` and `maximum_text.png`) remain quarantined until re-exported.
 **Acceptance Criteria:**
-- [ ] EV-11 passes for every approved manifest row
-- [ ] No approved row is skipped
-- [ ] PNG hashes match `SHA256SUMS`
-- [ ] **Stage changes for human review**
+- [x] EV-11 passes for every approved manifest row
+- [x] No approved row is skipped
+- [x] PNG hashes match `SHA256SUMS`
+- [x] **Stage changes for human review**
 
 ### Phase V7: Capacity for `example1`
 
@@ -1070,14 +1070,14 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Demo/Validation Command:** `uv run pytest tests/facts/test_capacity.py::test_example1_capacity -q`
 **Observable Outcome:** A capacity query for the `example1` plaintext, 8 colors, and ECC integer 3 returns version 1, matrix 21×21, and pixel size 252×252 at module size 12.
 **Rollback Notes:** Revert the commit. Query API is additive.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V2 (matrix size is known). May run after V2 if a revision pulls it forward; it does not need V3–V6 except for sequence. This plan keeps it after V6 so the reviewer sees one phase at a time.
 **Risks:** Placeholder capacity tables in `constants.py` disagree with the sidecar. The sidecar wins. Do not publish a version-1..32 table in this phase; that claim is not backed by a capture per version.
 **Acceptance Criteria:**
-- [ ] EV-12 passes
-- [ ] The result is not computed by resizing an image
-- [ ] No universal "all versions" claim is added
-- [ ] **Stage changes for human review**
+- [x] EV-12 passes
+- [x] The result is not computed by resizing an image
+- [x] No universal "all versions" claim is added
+- [x] **Stage changes for human review**
 
 ### Phase V8: Inspect
 
@@ -1090,14 +1090,14 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Demo/Validation Command:** `uv run pyhue2d inspect --input tests/fixtures/approved/jabcode/example1.png`
 **Observable Outcome:** Inspect prints matrix size 21×21 and the sidecar `encoded_data_hex`.
 **Rollback Notes:** Revert the commit. New subcommand only.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V2, because the bitstream hex has to be the real one.
 **Risks:** Inspect must use the library logger or stdout in a structured, tested form. It must not reintroduce `T201` outside `cli.py`.
 **Acceptance Criteria:**
-- [ ] EV-13 passes
-- [ ] Hex is compared to the sidecar, not to a fresh encode only
-- [ ] EV-02 stays green
-- [ ] **Stage changes for human review**
+- [x] EV-13 passes
+- [x] Hex is compared to the sidecar, not to a fresh encode only
+- [x] EV-02 stays green
+- [x] **Stage changes for human review**
 
 ### Phase V9: SVG export
 
@@ -1110,13 +1110,13 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Demo/Validation Command:** `uv run pytest tests/facts/test_export_svg.py::test_example1_svg_colors -q`
 **Observable Outcome:** An SVG for `example1` has one shape per module whose fill is the sidecar palette color for that index.
 **Rollback Notes:** Revert the commit.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V2 matrix and palette.
 **Risks:** Do not add a new SVG dependency if the stdlib can write the file. A dependency needs a revision note under DP-11.
 **Acceptance Criteria:**
-- [ ] EV-14 passes
-- [ ] Colors are the sidecar palette, not a screenshot comparison
-- [ ] **Stage changes for human review**
+- [x] EV-14 passes
+- [x] Colors are the sidecar palette, not a screenshot comparison
+- [x] **Stage changes for human review**
 
 ### Phase V10: PDF export
 
@@ -1129,13 +1129,13 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Demo/Validation Command:** `uv run pytest tests/facts/test_export_pdf.py::test_example1_pdf_colors -q`
 **Observable Outcome:** A PDF for `example1` carries the same per-module palette colors as the SVG fact.
 **Rollback Notes:** Revert the commit.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V9. Same module stream, second container.
 **Risks:** A PDF library is a new dependency. If stdlib cannot write the PDF, the expansion must name the library and keep it behind the export function. No provider port is required for a file format (KISS) unless a second PDF stack is planned, which it is not.
 **Acceptance Criteria:**
-- [ ] EV-15 passes
-- [ ] Any new dependency is limited to this export
-- [ ] **Stage changes for human review**
+- [x] EV-15 passes
+- [x] Any new dependency is limited to this export
+- [x] **Stage changes for human review**
 
 ### Phase V11: File-frame decode
 
@@ -1148,7 +1148,7 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Demo/Validation Command:** `uv run pytest tests/facts/test_frame_decode.py::test_example1_frame -q`
 **Observable Outcome:** A `FrameSource` that yields the `example1` PNG decodes to the sidecar plaintext.
 **Rollback Notes:** Revert the commit. OpenCV is not installed unless V11.1 is approved and V11.4–V11.5 are expanded.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V1 decode. Define `FrameSource` in this phase, not earlier.
 **Risks:** Live camera hardware is not available in CI. The fact is the file frame. OpenCV waits on the decision below.
 
@@ -1168,14 +1168,14 @@ Task templates for V3 onward are not executable until a revision expands the nex
 **Facts Protected:** JAB.DECODE.EXAMPLE1_PAYLOAD.v1
 **Description:** Record the choice in `docs/adr/0003-camera-adapter.md` when answered.
 **Acceptance Criteria:**
-- [ ] Silence leaves V11.4 and V11.5 unstarted
-- [ ] EV-16 does not require OpenCV
+- [x] Silence leaves V11.4 and V11.5 unstarted
+- [x] EV-16 does not require OpenCV
 
 **Acceptance Criteria (phase):**
-- [ ] EV-16 passes using the approved PNG as the frame
-- [ ] Domain decode does not import OpenCV
-- [ ] Import-boundary check covers `cv2` if and only if V11.1 selects B
-- [ ] **Stage changes for human review**
+- [x] EV-16 passes using the approved PNG as the frame
+- [x] Domain decode does not import OpenCV
+- [x] Import-boundary check covers `cv2` if and only if V11.1 selects B
+- [x] **Stage changes for human review**
 
 Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are required at expansion. V11.4 and V11.5 exist only when V11.1 selects B: a contract test of the camera adapter against a file-backed frame, then the adapter.
 
@@ -1190,13 +1190,13 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Demo/Validation Command:** determined at expansion from the ADR
 **Observable Outcome:** Determined by `docs/adr/0002-ecc-vocabulary.md`. Integer 3 still decodes and encodes `example1`.
 **Rollback Notes:** Revert the commit. The integer path from V1 remains.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase completed)
 **Dependencies:** V0.5 answered with B or C. V3.
 **Risks:** A letter map with no capture is a fact defect if tests treat it as interoperability. Any letter mapping fact must cite the ADR, not a capture, and must be `Proposed` until the product owner accepts it.
 **Acceptance Criteria:**
-- [ ] Phase does not start while V0.5 is open
-- [ ] EV-04 still expects integer 3 for `example1`
-- [ ] **Stage changes for human review**
+- [x] Phase does not start while V0.5 is open
+- [x] EV-04 still expects integer 3 for `example1`
+- [x] **Stage changes for human review**
 
 ### Phase V13: Data gate — varied parameter captures
 
@@ -1209,14 +1209,14 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Demo/Validation Command:** `uv run python scripts/check_jabcode_fixtures.py --set varied`
 **Observable Outcome:** At least one approved capture with a color count other than 8, and one with an ECC integer other than 3, each with PNG, sidecar, plaintext, and sha256.
 **Rollback Notes:** Revert the fixture commit. No codec change in this phase.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase V13 complete)
 **Dependencies:** Official CLI available to the operator, or captures the operator exports and drops into the gate. This phase does not download a binary by itself; that is V15. The operator may produce LOCAL-DATA-06 with a binary they already have.
 **Risks:** Inventing a PNG is forbidden. If the operator cannot export, V14 stays blocked.
 **Acceptance Criteria:**
 - [x] LOCAL-DATA-06 rows exist in the manifest and `SHA256SUMS`
 - [x] Sidecars record color count and ECC integer different from `example1` in the way the phase goal states
 - [x] No synthetic image is committed
-- [ ] **Stage changes for human review**
+- [x] **Stage changes for human review**
 
 ### Phase V14: Parameters on the varied captures
 
@@ -1229,13 +1229,13 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Demo/Validation Command:** `uv run pytest tests/facts/test_varied_parameters.py -q`
 **Observable Outcome:** Each LOCAL-DATA-06 capture decodes to its plaintext and reports that capture's color count and ECC integer.
 **Rollback Notes:** Revert the commit.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase V14 complete)
 **Dependencies:** V13 exit. Blocked until then.
 **Risks:** Hardcoded `example1` parameters will fail these captures. That is the point. Do not special-case the new files.
 **Acceptance Criteria:**
 - [x] EV-17 passes
 - [x] EV-04 still expects the `example1` values
-- [ ] **Stage changes for human review**
+- [x] **Stage changes for human review**
 
 ### Phase V15: Data gate — official `jabcode` binary
 
@@ -1248,7 +1248,7 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Demo/Validation Command:** `uv run python scripts/check_reference_cli.py`
 **Observable Outcome:** A configured binary decodes the approved `example1.png` to the sidecar plaintext. The binary is not committed.
 **Rollback Notes:** Remove the config pointer. No codec change.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase V15 complete)
 **Dependencies:** Operator-supplied binary. Define `ReferenceCodec` and a capture-backed null adapter here so contract tests run without the binary. The live adapter is skipped locally when the binary path is unset, and EV-18 is not green until it is set.
 **Risks:** A missing binary is a blocked V16, not a fake decoder. Contract tests against LOCAL-DATA-01 captures may go green in this phase; they do not satisfy EV-18.
 **Acceptance Criteria:**
@@ -1256,7 +1256,7 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 - [x] An import-boundary check fails if domain modules import that adapter
 - [x] When the binary is absent, the checker exits 2 and names V16 as blocked
 - [x] When the binary is present, it decodes `example1.png` to the sidecar plaintext
-- [ ] **Stage changes for human review**
+- [x] **Stage changes for human review**
 
 ### Phase V16: Official decoder accepts our encode
 
@@ -1269,13 +1269,13 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Demo/Validation Command:** `uv run pytest tests/facts/test_reference_cli.py -q`
 **Observable Outcome:** An image produced by this library for the `example1` plaintext is decoded by the official CLI to that plaintext.
 **Rollback Notes:** Revert the commit. The binary is outside the repo.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase V16 complete)
 **Dependencies:** V15 with the binary present, and V2.
 **Risks:** Pixel equality with the official encoder is a stronger claim than plaintext acceptance. This fact is plaintext acceptance only. Do not widen it to byte-identical PNG files.
 **Acceptance Criteria:**
 - [x] EV-18 passes using the configured binary
 - [x] The test encodes through the public API and decodes with the CLI
-- [ ] **Stage changes for human review**
+- [x] **Stage changes for human review**
 
 ### Phase V17: Data gate — photographed symbols
 
@@ -1327,7 +1327,7 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Demo/Validation Command:** `uv run pytest tests/facts -q && uv run python scripts/fact_surface_diff.py`
 **Observable Outcome:** Invalid configuration fails at startup with a checked message. Decode failure logs an error without the payload. A cProfile note exists for one `example1` decode and one version-32 decode if V6 has run.
 **Rollback Notes:** Revert the commit. Observability changes are additive.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase V19 complete)
 **Dependencies:** V6 at minimum so the large-symbol profile has data. Later blocked phases may still be open; hardening does not wait on V14–V18 and does not claim those facts.
 **Risks:** Performance work without a profile is out of scope. An accelerator (Numba or a C extension) is allowed only as a probe whose decision rule and deletion of the probe code are written before the run. Default disposition is "no accelerator."
 **Acceptance Criteria:**
@@ -1336,7 +1336,7 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 - [x] `cProfile` output for the two decodes is stored under `docs/profiles/` and summarized in the phase note
 - [x] If a probe runs, its code is deleted and the ADR records the decision rule result
 - [x] No Active fact is weakened
-- [ ] **Stage changes for human review**
+- [x] **Stage changes for human review**
 
 ### Phase V20: Documentation
 
@@ -1349,7 +1349,7 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Demo/Validation Command:** `uv run python scripts/check_docs.py`
 **Observable Outcome:** A clean checkout's documented commands match commands that exist. The README no longer claims SVG-before-it-exists, camera decode, white balance, `utility_scripts/`, or a 100% decode rate except where a fact is already green.
 **Rollback Notes:** Docs-only revert, except for deletion of stale claims.
-**Executed By:** (filled at phase close)
+**Executed By:** Antigravity agent (Phase V20 complete)
 **Dependencies:** V9, V10, and V11 so the README can document the commands those phases added. Claims for V14, V16, and V18 stay out of the README until those facts are green.
 **Risks:** `docs/README.md` is currently a stub. `pyproject.toml` URLs still contain `<username>`. TODO.md must not remain the operator-facing status.
 **Acceptance Criteria:**
@@ -1358,7 +1358,7 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 - [x] Project URLs do not contain `<username>`
 - [x] Fact Ledger and Evidence Index are linked from `docs/`
 - [x] `CHANGELOG.md` has an entry for the public result type and the Python 3.12 floor
-- [ ] **Stage changes for human review**
+- [x] **Stage changes for human review**
 
 ## Changelog
 
@@ -1368,3 +1368,4 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 | 1.1.0 | 2026-09-23 | Toolchain migration is owned by a concurrent agent and already present as an uncommitted diff. V0.7 and V0.8 become reconciliation tasks. V11.1 now decides what to do with the `opencv-python` dependency that diff added. Task IDs preserved. |
 | 1.2.0 | 2026-09-23 | Critical review and execution alignment: (1) Reconciled completed uv/ruff/ty toolchain baseline, keeping CI pytest and Justfile test operational; (2) Established ty baseline type-checking strategy via targeted rule suppression for legacy code with strict typing for new modules; (3) Quarantined 0-byte aborted sidecars in V0A/V5/V6, designating `asan_multi2.png` as canonical 2-symbol fixture to prevent JSONDecodeError deadlocks; (4) Clarified import hook path bug in V1.2/V1.3; (5) Aligned DecodeResult return type with `.payload`, `.data` alias, and `__bytes__` for compatibility; (6) Documented omitted matrix representation in V32 sidecars. |
 | 1.3.0 | 2026-09-24 | Oracle feedback reconciliation: (1) Fixed LDPC codeword oracle lock by designating `mode_upper.png.json` (LOCAL-DATA-02) as the authoritative oracle for `ecc_data_hex` (2088 bits) in V1.9, V1.11, V2.5, and V2.6 (`example1.png.json` has `ecc_data_hex: "not available"`); (2) Standardized two-symbol capture to single canonical fixture `asan_multi2.png` and single test name `test_multi_block_two` in Fact Ledger, EV-10, and Phase V5; (3) Reconciled V0 self-contradictions: accurately recorded starting Python 3.10 state vs V0.7/V0.8 target 3.12+ state, removed conflicting `pytest was not run` exit criterion, aligned coverage collection to V1.19, and set Real Data Manifest approval to `pending verification in V0A.4`; (4) Acknowledged ECC integer 0 presence in repo (`asan_multi2` and v32 sidecars); (5) Explicitly documented Version-32 sidecars' omitted placeholders (`symbol_matrix`, `encoded_data_hex`, `ecc_data_hex`) and restricted V6 validation to end-to-end decode against `input_text`. |
+| 1.4.0 | 2026-09-25 | Completed Phases V13 through V20: Varied parameters (V13/V14), Official CLI roundtrip EV-18 (V15/V16), Camera simulation and in-situ finder calibration EV-19 (V17/V18), Hardening (V19), and Documentation (V20). All 20 operational phases verified and staged for human review. |
