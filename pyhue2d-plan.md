@@ -1331,11 +1331,11 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Dependencies:** V6 at minimum so the large-symbol profile has data. Later blocked phases may still be open; hardening does not wait on V14–V18 and does not claim those facts.
 **Risks:** Performance work without a profile is out of scope. An accelerator (Numba or a C extension) is allowed only as a probe whose decision rule and deletion of the probe code are written before the run. Default disposition is "no accelerator."
 **Acceptance Criteria:**
-- [ ] A test asserts the failure message for a missing input path and for an unknown subcommand
-- [ ] Captured logs for a failed decode contain no plaintext from the fixture
-- [ ] `cProfile` output for the two decodes is stored under `docs/profiles/` and summarized in the phase note
-- [ ] If a probe runs, its code is deleted and the ADR records the decision rule result
-- [ ] No Active fact is weakened
+- [x] A test asserts the failure message for a missing input path and for an unknown subcommand
+- [x] Captured logs for a failed decode contain no plaintext from the fixture
+- [x] `cProfile` output for the two decodes is stored under `docs/profiles/` and summarized in the phase note
+- [x] If a probe runs, its code is deleted and the ADR records the decision rule result
+- [x] No Active fact is weakened
 - [ ] **Stage changes for human review**
 
 ### Phase V20: Documentation
@@ -1353,11 +1353,11 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Dependencies:** V9, V10, and V11 so the README can document the commands those phases added. Claims for V14, V16, and V18 stay out of the README until those facts are green.
 **Risks:** `docs/README.md` is currently a stub. `pyproject.toml` URLs still contain `<username>`. TODO.md must not remain the operator-facing status.
 **Acceptance Criteria:**
-- [ ] `scripts/check_docs.py` fails when the README references a CLI flag that `--help` does not list
-- [ ] README quick start matches `decode` returning a result with `payload` and `symbology`
-- [ ] Project URLs do not contain `<username>`
-- [ ] Fact Ledger and Evidence Index are linked from `docs/`
-- [ ] `CHANGELOG.md` has an entry for the public result type and the Python 3.12 floor
+- [x] `scripts/check_docs.py` fails when the README references a CLI flag that `--help` does not list
+- [x] README quick start matches `decode` returning a result with `payload` and `symbology`
+- [x] Project URLs do not contain `<username>`
+- [x] Fact Ledger and Evidence Index are linked from `docs/`
+- [x] `CHANGELOG.md` has an entry for the public result type and the Python 3.12 floor
 - [ ] **Stage changes for human review**
 
 ## Changelog
