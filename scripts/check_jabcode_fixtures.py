@@ -138,6 +138,66 @@ def check_fixtures(base_dir: Path | None = None) -> list[str]:
     return errors
 
 
+def check_varied_fixtures(target_dir: Path) -> tuple[list[str], int]:
+    """Check varied fixtures (LOCAL-DATA-06) for Phase V13."""
+    if not target_dir.exists() or not list(target_dir.glob("*.png")):
+        return [
+            "Phase V14 is blocked: LOCAL-DATA-06 varied captures (color count != 8, ECC != 3) are not in the repo."
+        ], 2
+
+    png_files = sorted(target_dir.glob("*.png"))
+    sha_file = target_dir / "SHA256SUMS"
+    sha_map: dict[str, str] = {}
+    if sha_file.exists():
+        for line in sha_file.read_text(encoding="utf-8").splitlines():
+            parts = line.strip().split(maxsplit=1)
+            if len(parts) == 2:
+                sha_map[Path(parts[1]).name] = parts[0]
+
+    errors = []
+    has_non_8_color = False
+    has_non_3_ecc = False
+
+    for png_path in png_files:
+        sidecar_path = target_dir / f"{png_path.name}.json"
+        if not sidecar_path.exists():
+            errors.append(f"{png_path.name}: Sidecar missing at {sidecar_path}")
+            continue
+
+        try:
+            sidecar_data = json.loads(sidecar_path.read_text(encoding="utf-8"))
+            color_num = sidecar_data.get("color_number")
+            ecc_levels = sidecar_data.get("ecc_levels", [])
+            if color_num is not None and color_num != 8:
+                has_non_8_color = True
+            if ecc_levels and ecc_levels != [3]:
+                has_non_3_ecc = True
+        except Exception as e:
+            errors.append(f"{png_path.name}: Failed to parse sidecar: {e}")
+
+        if sha_map and png_path.name in sha_map:
+            actual_sha = hashlib.sha256(png_path.read_bytes()).hexdigest()
+            if actual_sha != sha_map[png_path.name]:
+                errors.append(
+                    f"{png_path.name}: SHA256 mismatch: actual {actual_sha} != expected {sha_map[png_path.name]}"
+                )
+
+    if not has_non_8_color:
+        errors.append("LOCAL-DATA-06 requires at least one capture with color count != 8")
+    if not has_non_3_ecc:
+        errors.append("LOCAL-DATA-06 requires at least one capture with ECC != 3")
+
+    return errors, 1 if errors else 0
+
+
+def check_photo_fixtures(target_dir: Path) -> tuple[list[str], int]:
+    """Check photograph fixtures (LOCAL-DATA-07) for Phase V17."""
+    if not target_dir.exists() or not list(target_dir.glob("*.png")):
+        return ["Phase V18 is blocked: LOCAL-DATA-07 photographed symbol captures are not in the repo."], 2
+
+    return [], 0
+
+
 def main() -> int:
     import argparse
 
@@ -151,6 +211,26 @@ def main() -> int:
     target_dir = args.dir
     if target_dir is None and args.set != "approved":
         target_dir = Path("tests/fixtures/approved/jabcode") / args.set
+
+    if args.set == "varied":
+        errors, exit_code = check_varied_fixtures(target_dir or (Path("tests/fixtures/approved/jabcode") / "varied"))
+        if errors:
+            print("=== Varied Fixture Integrity Errors ===", file=sys.stderr)
+            for err in errors:
+                print(f"  - {err}", file=sys.stderr)
+            return exit_code
+        print("All varied JAB Code fixtures passed integrity checks.")
+        return 0
+
+    if args.set == "photos":
+        errors, exit_code = check_photo_fixtures(target_dir or (Path("tests/fixtures/approved/jabcode") / "photos"))
+        if errors:
+            print("=== Photo Fixture Integrity Errors ===", file=sys.stderr)
+            for err in errors:
+                print(f"  - {err}", file=sys.stderr)
+            return exit_code
+        print("All photo JAB Code fixtures passed integrity checks.")
+        return 0
 
     errors = check_fixtures(base_dir=target_dir)
     if errors:

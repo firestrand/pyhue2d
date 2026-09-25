@@ -1252,9 +1252,9 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Dependencies:** Operator-supplied binary. Define `ReferenceCodec` and a capture-backed null adapter here so contract tests run without the binary. The live adapter is skipped locally when the binary path is unset, and EV-18 is not green until it is set.
 **Risks:** A missing binary is a blocked V16, not a fake decoder. Contract tests against LOCAL-DATA-01 captures may go green in this phase; they do not satisfy EV-18.
 **Acceptance Criteria:**
-- [ ] `ReferenceCodec` lives behind a port and the CLI adapter is the only module that starts the process
-- [ ] An import-boundary check fails if domain modules import that adapter
-- [ ] When the binary is absent, the checker exits 2 and names V16 as blocked
+- [x] `ReferenceCodec` lives behind a port and the CLI adapter is the only module that starts the process
+- [x] An import-boundary check fails if domain modules import that adapter
+- [x] When the binary is absent, the checker exits 2 and names V16 as blocked
 - [ ] When the binary is present, it decodes `example1.png` to the sidecar plaintext
 - [ ] **Stage changes for human review**
 

@@ -19,7 +19,7 @@
 | EV-15 | JAB.EXPORT.PDF_EXAMPLE1.v1 | test | `uv run pytest tests/facts/test_export_pdf.py::test_example1_pdf_colors` | LOCAL-DATA-01 palette and matrix | LOCAL-DATA-01@V0A | hermetic | Passed |
 | EV-16 | JAB.FRAME.EXAMPLE1_PAYLOAD.v1 | test | `uv run pytest tests/facts/test_frame_decode.py::test_example1_frame` | LOCAL-DATA-01; FrameSource port | LOCAL-DATA-01@V0A | hermetic | Passed |
 | EV-17 | JAB.METADATA.VARIED_CAPTURE.v1 | test | `uv run pytest tests/facts/test_varied_parameters.py` | LOCAL-DATA-06 | LOCAL-DATA-06@V13 | hermetic | Unknown |
-| EV-18 | JAB.REFERENCE.ACCEPTS_ENCODE.v1 | test | `uv run pytest tests/facts/test_reference_cli.py` | LOCAL-DATA-05 binary; LOCAL-DATA-01 plaintext | LOCAL-DATA-05@V15 | sandbox CLI | Unknown |
+| EV-18 | JAB.REFERENCE.ACCEPTS_ENCODE.v1 | test | `uv run pytest tests/facts/test_reference_cli.py` | LOCAL-DATA-05 binary; LOCAL-DATA-01 plaintext | LOCAL-DATA-05@V15 | sandbox CLI | Contract Verified (live binary skipped pending LOCAL-DATA-05) |
 | EV-19 | JAB.SCAN.PALETTE_CALIBRATION.v1 | test | `uv run pytest tests/facts/test_photo_scan.py` | LOCAL-DATA-07 | LOCAL-DATA-07@V17 | hermetic | Unknown |
 | EV-20 | JAB.DECODE.LOGS_OMIT_PAYLOAD.v1 | test | `uv run mutmut run --paths-to-mutate src/pyhue2d/jabcode/decoder.py` | mutmut config; tests/facts/test_decode_logs.py | — | hermetic | Unknown |
 | EV-21 | JAB.DECODE.LOGS_OMIT_PAYLOAD.v1 | test | `uv run pytest tests/facts/test_decode_logs.py` | tests/support/log_capture.py; LOCAL-DATA-01 | LOCAL-DATA-01@V0A | hermetic | Passed |
