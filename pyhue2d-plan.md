@@ -1255,7 +1255,7 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 - [x] `ReferenceCodec` lives behind a port and the CLI adapter is the only module that starts the process
 - [x] An import-boundary check fails if domain modules import that adapter
 - [x] When the binary is absent, the checker exits 2 and names V16 as blocked
-- [ ] When the binary is present, it decodes `example1.png` to the sidecar plaintext
+- [x] When the binary is present, it decodes `example1.png` to the sidecar plaintext
 - [ ] **Stage changes for human review**
 
 ### Phase V16: Official decoder accepts our encode
@@ -1273,8 +1273,8 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Dependencies:** V15 with the binary present, and V2.
 **Risks:** Pixel equality with the official encoder is a stronger claim than plaintext acceptance. This fact is plaintext acceptance only. Do not widen it to byte-identical PNG files.
 **Acceptance Criteria:**
-- [ ] EV-18 passes using the configured binary
-- [ ] The test encodes through the public API and decodes with the CLI
+- [x] EV-18 passes using the configured binary
+- [x] The test encodes through the public API and decodes with the CLI
 - [ ] **Stage changes for human review**
 
 ### Phase V17: Data gate — photographed symbols
