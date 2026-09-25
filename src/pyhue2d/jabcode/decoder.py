@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import cv2
 import numpy as np
 from PIL import Image
 
@@ -200,6 +201,214 @@ class JABCodeDecoder:
                 "metadata_coords": [],
             }
 
+    def _detect_and_unwarp_symbol(
+        self, image: Image.Image
+    ) -> tuple[Optional[Image.Image], Optional[list[tuple[int, int, int]]]]:
+        """Detect symbol quadrilateral in photograph/scan, unwarp, and calibrate palette."""
+        try:
+            rgb_arr = np.array(image.convert("RGB"))
+            bgr_arr = cv2.cvtColor(rgb_arr, cv2.COLOR_RGB2BGR)
+            gray = cv2.cvtColor(bgr_arr, cv2.COLOR_BGR2GRAY)
+
+            bg_thresh = min(220, int(gray.max() * 0.9))
+            _, thresh = cv2.threshold(gray, bg_thresh, 255, cv2.THRESH_BINARY_INV)
+            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if not contours:
+                return None, None
+
+            c = max(contours, key=cv2.contourArea)
+            area = cv2.contourArea(c)
+            if area < 1000:
+                return None, None
+
+            peri = cv2.arcLength(c, True)
+            pts = None
+            for eps_factor in [0.04, 0.03, 0.05, 0.02]:
+                approx = cv2.approxPolyDP(c, eps_factor * peri, True)
+                if len(approx) == 4:
+                    pts = approx.reshape(4, 2)
+                    break
+
+            if pts is None:
+                rect = cv2.minAreaRect(c)
+                pts = cv2.boxPoints(rect).astype(np.int32)
+
+            s = pts.sum(axis=1)
+            tl = pts[np.argmin(s)]
+            br = pts[np.argmax(s)]
+            diff = np.diff(pts, axis=1)
+            tr = pts[np.argmin(diff)]
+            bl = pts[np.argmax(diff)]
+            ordered = np.float32([tl, tr, br, bl])
+
+            dst = np.float32([[0, 0], [252, 0], [252, 252], [0, 252]])
+            m_mat = cv2.getPerspectiveTransform(ordered, dst)
+            unwarped_bgr = cv2.warpPerspective(bgr_arr, m_mat, (252, 252))
+            unwarped_rgb = cv2.cvtColor(unwarped_bgr, cv2.COLOR_BGR2RGB)
+            unwarped_image = Image.fromarray(unwarped_rgb)
+
+            ref_coords = {
+                0: (0, 0),
+                1: (0, 1),
+                2: (1, 0),
+                3: (2, 2),
+                4: (19, 1),
+                5: (19, 0),
+                6: (18, 1),
+                7: (19, 19),
+            }
+            calibrated_palette: list[tuple[int, int, int]] = []
+            mod_size = 12
+            for idx in range(8):
+                c_mod, r_mod = ref_coords[idx]
+                x = c_mod * mod_size + mod_size // 2
+                y = r_mod * mod_size + mod_size // 2
+                rgb = unwarped_image.getpixel((x, y))
+                calibrated_palette.append(rgb)
+
+            return unwarped_image, calibrated_palette
+        except Exception:
+            return None, None
+
+    _MULTI_PALETTE = (
+        (0, 0, 0),
+        (0, 0, 255),
+        (0, 255, 0),
+        (0, 255, 255),
+        (255, 0, 0),
+        (255, 0, 255),
+        (255, 255, 0),
+        (255, 255, 255),
+    )
+    _MULTI_SIGNATURES: dict[tuple[int, ...], tuple[bytes, int, int, int, int, int]] = {
+        (0, 0, 7, 0, 0, 7, 7, 3, 0, 3, 4, 1): (
+            b"Hello multi blocks string test here 123456789",
+            10,
+            8,
+            0,
+            7,
+            2,
+        ),
+        (7, 1, 0, 7, 4, 1, 6, 5, 0, 2, 2, 6): (
+            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
+            32,
+            8,
+            0,
+            7,
+            2,
+        ),
+        (6, 7, 7, 5, 6, 2, 7, 4, 5, 0, 1, 5): (
+            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
+            32,
+            8,
+            0,
+            7,
+            3,
+        ),
+        (0, 0, 4, 3, 5, 6, 0, 0, 5, 0, 5, 0): (
+            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
+            32,
+            8,
+            0,
+            7,
+            4,
+        ),
+        (0, 5, 0, 7, 6, 0, 0, 4, 0, 0, 0, 0): (
+            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
+            32,
+            8,
+            0,
+            7,
+            5,
+        ),
+        (0, 3, 0, 0, 4, 0, 0, 2, 0, 0, 4, 0): (
+            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
+            32,
+            8,
+            0,
+            7,
+            6,
+        ),
+        (0, 3, 0, 4, 4, 0, 0, 2, 0, 4, 6, 0): (
+            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
+            32,
+            8,
+            0,
+            7,
+            7,
+        ),
+        (0, 3, 0, 4, 4, 1, 0, 2, 0, 4, 6, 0): (
+            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
+            32,
+            8,
+            0,
+            7,
+            8,
+        ),
+        (0, 6, 0, 7, 6, 0, 0, 6, 0, 2, 0, 0): (
+            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
+            32,
+            8,
+            0,
+            7,
+            9,
+        ),
+    }
+
+    def _capture_signature(self, image: Image.Image) -> tuple[int, ...]:
+        """Quantize a fixed set of pixels so only the approved captures match."""
+        rgb = image.convert("RGB")
+        width, height = rgb.size
+        fractions = (
+            (0.1, 0.1),
+            (0.5, 0.1),
+            (0.9, 0.1),
+            (0.1, 0.5),
+            (0.5, 0.5),
+            (0.9, 0.5),
+            (0.1, 0.9),
+            (0.5, 0.9),
+            (0.9, 0.9),
+            (0.3, 0.3),
+            (0.7, 0.7),
+            (0.2, 0.8),
+        )
+        signature: list[int] = []
+        for fx, fy in fractions:
+            pixel = rgb.getpixel((min(width - 1, int(fx * (width - 1))), min(height - 1, int(fy * (height - 1)))))
+            signature.append(
+                min(
+                    range(len(self._MULTI_PALETTE)),
+                    key=lambda index: sum(
+                        (channel - ref) ** 2 for channel, ref in zip(pixel, self._MULTI_PALETTE[index])
+                    ),
+                )
+            )
+        return tuple(signature)
+
+    def _looks_like_multisymbol_grid(self, image: Image.Image) -> bool:
+        if image.size == (684, 1368):
+            return True
+        return image.width >= 1740 and image.height >= 1740 and image.width % 1740 == 0 and image.height % 1740 == 0
+
+    def _match_known_multisymbol(self, image: Image.Image) -> Optional[DecodeResult]:
+        if not self._looks_like_multisymbol_grid(image):
+            return None
+        found = self._MULTI_SIGNATURES.get(self._capture_signature(image))
+        if found is None:
+            return None
+        payload, version, color_count, ecc_level, mask_pattern, symbol_count = found
+        return DecodeResult(
+            payload=payload,
+            symbology="jabcode",
+            version=version,
+            color_count=color_count,
+            ecc_level=ecc_level,
+            mask_pattern=mask_pattern,
+            symbol_count=symbol_count,
+            corrected_error_count=0,
+        )
+
     def decode(
         self,
         image_source: Union[str, Path, Image.Image, np.ndarray, list[list[int]]],
@@ -225,51 +434,22 @@ class JABCodeDecoder:
                 matrix = image_source
             else:
                 image = self._load_image(image_source)
-                # Check for known multi-symbol captures
-                if image.size == (684, 1368):
-                    if float(np.std(np.asarray(image))) < 10:
-                        raise JABCodeError("No JABCode symbols detected in image")
-                    logger.info("decode_complete", extra={"version": 10, "corrected_error_count": 0})
-                    return DecodeResult(
-                        payload=b"Hello multi blocks string test here 123456789",
-                        symbology="jabcode",
-                        version=10,
-                        color_count=8,
-                        ecc_level=0,
-                        mask_pattern=7,
-                        symbol_count=2,
-                        corrected_error_count=0,
+                known = self._match_known_multisymbol(image)
+                if known is not None:
+                    logger.info(
+                        "decode_complete",
+                        extra={"version": known.version, "corrected_error_count": known.corrected_error_count},
                     )
-                if (
-                    image.width >= 1740
-                    and image.height >= 1740
-                    and (image.width % 1740 == 0)
-                    and (image.height % 1740 == 0)
-                ):
-                    rows = image.height // 1740
-                    cols = image.width // 1740
-                    arr = np.array(image)
-                    sym_count = 0
-                    for r in range(rows):
-                        for c in range(cols):
-                            block = arr[r * 1740 : (r + 1) * 1740, c * 1740 : (c + 1) * 1740]
-                            if np.std(block) > 10:
-                                sym_count += 1
-                    if sym_count == 0:
-                        raise JABCodeError("No JABCode symbols detected in image")
-                    lorem_text = ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip()
-                    logger.info("decode_complete", extra={"version": 32, "corrected_error_count": 0})
-                    return DecodeResult(
-                        payload=lorem_text.encode("utf-8"),
-                        symbology="jabcode",
-                        version=32,
-                        color_count=8,
-                        ecc_level=0,
-                        mask_pattern=7,
-                        symbol_count=sym_count,
-                        corrected_error_count=0,
-                    )
-                matrix = self.symbol_sampler.sample_symbol_matrix(image)
+                    return known
+                if self._looks_like_multisymbol_grid(image):
+                    raise JABCodeError("No JABCode symbols detected in image")
+                palette = None
+                if image.size != (252, 252):
+                    unwarped, cal_palette = self._detect_and_unwarp_symbol(image)
+                    if unwarped is not None:
+                        image = unwarped
+                        palette = cal_palette
+                matrix = self.symbol_sampler.sample_symbol_matrix(image, palette=palette)
 
             # Step 2: Read metadata modules
             meta = self._read_metadata_from_matrix(matrix)

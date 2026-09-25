@@ -195,7 +195,37 @@ def check_photo_fixtures(target_dir: Path) -> tuple[list[str], int]:
     if not target_dir.exists() or not list(target_dir.glob("*.png")):
         return ["Phase V18 is blocked: LOCAL-DATA-07 photographed symbol captures are not in the repo."], 2
 
-    return [], 0
+    png_files = sorted(target_dir.glob("*.png"))
+    sha_file = target_dir / "SHA256SUMS"
+    sha_map: dict[str, str] = {}
+    if sha_file.exists():
+        for line in sha_file.read_text(encoding="utf-8").splitlines():
+            parts = line.strip().split(maxsplit=1)
+            if len(parts) == 2:
+                sha_map[Path(parts[1]).name] = parts[0]
+
+    errors: list[str] = []
+    for png_path in png_files:
+        sidecar_path = target_dir / f"{png_path.name}.json"
+        if not sidecar_path.exists():
+            errors.append(f"{png_path.name}: Sidecar missing at {sidecar_path}")
+            continue
+
+        try:
+            sidecar_data = json.loads(sidecar_path.read_text(encoding="utf-8"))
+            if "input_text" not in sidecar_data:
+                errors.append(f"{png_path.name}: Sidecar missing input_text field")
+        except Exception as e:
+            errors.append(f"{png_path.name}: Failed to parse sidecar: {e}")
+
+        if sha_map and png_path.name in sha_map:
+            actual_sha = hashlib.sha256(png_path.read_bytes()).hexdigest()
+            if actual_sha != sha_map[png_path.name]:
+                errors.append(
+                    f"{png_path.name}: SHA256 mismatch: actual {actual_sha} != expected {sha_map[png_path.name]}"
+                )
+
+    return errors, 1 if errors else 0
 
 
 def main() -> int:

@@ -37,3 +37,9 @@ def test_blank_grid_is_not_decoded_as_a_symbol():
         pyhue2d.decode(Image.new("RGB", (684, 1368), (255, 255, 255)))
     with pytest.raises(JABCodeError):
         pyhue2d.decode(Image.new("RGB", (1740, 1740), (255, 255, 255)))
+
+    import numpy as np
+
+    noisy = Image.fromarray(np.random.default_rng(1).integers(0, 255, size=(1368, 684, 3), dtype=np.uint8), "RGB")
+    with pytest.raises(JABCodeError):
+        pyhue2d.decode(noisy)

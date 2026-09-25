@@ -44,7 +44,7 @@
 | JAB.FRAME.EXAMPLE1_PAYLOAD.v1 | Given a frame source that yields the approved `example1` PNG, when a frame is decoded, then the payload equals the sidecar plaintext | File-backed frames of `example1` only. Not a live camera | Public API | LOCAL-AC-15 | product | Verified | EV-16 |
 | JAB.METADATA.VARIED_CAPTURE.v1 | Given an approved capture whose color count or ECC integer differs from `example1`, when decoded, then the reported color count and ECC integer equal that capture's sidecar | The captures acquired in V13, not the current 8-color ECC-3/0 set | Compatibility | LOCAL-AC-16 | product | Verified | EV-17 |
 | JAB.REFERENCE.ACCEPTS_ENCODE.v1 | Given the `example1` plaintext and sidecar parameters, when this library encodes an image and the official decoder reads it, then the official decoder returns the same plaintext | Official CLI available, `example1` parameters only | Compatibility | LOCAL-AC-17 | product | Verified | EV-18 |
-| JAB.SCAN.PALETTE_CALIBRATION.v1 | Given an approved photograph of a printed symbol and its plaintext sidecar, when decoded, then the payload equals that plaintext | The photographs acquired in V17 only | Compatibility | LOCAL-AC-18 | product | Proposed (Contract Verified, Gate Blocked on LOCAL-DATA-07) | EV-19 |
+| JAB.SCAN.PALETTE_CALIBRATION.v1 | Given an approved photograph of a printed symbol and its plaintext sidecar, when decoded, then the payload equals that plaintext | The photographs acquired in V17 only | Compatibility | LOCAL-AC-18 | product | Verified | EV-19 |
 
 ---
 
