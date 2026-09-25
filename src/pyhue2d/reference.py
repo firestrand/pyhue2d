@@ -35,7 +35,7 @@ class SubprocessReferenceCodec:
             raise FileNotFoundError(f"Input image not found: {image_path}")
 
         proc = subprocess.run(
-            [str(self.binary_path), "--input", str(path)],
+            [str(self.binary_path), str(path)],
             capture_output=True,
             check=False,
         )
@@ -68,14 +68,19 @@ class NullReferenceCodec:
 
 def get_reference_codec(binary_path: Path | str | None = None) -> ReferenceCodec | None:
     """Obtain configured reference codec, or None if no official binary is configured."""
-    bin_str = (
-        str(binary_path)
-        if binary_path is not None
-        else (os.environ.get("JABCODE_READER_PATH") or shutil.which("jabcodeReader") or shutil.which("jabcode"))
-    )
-    if bin_str:
-        try:
-            return SubprocessReferenceCodec(bin_str)
-        except Exception:
-            return None
+    candidates: list[Path | str | None] = [
+        binary_path,
+        os.environ.get("JABCODE_READER_PATH"),
+        shutil.which("jabcodeReader"),
+        shutil.which("jabcode"),
+        Path.home() / "Projects" / "jabcode" / "src" / "jabcodeReader" / "bin" / "jabcodeReader",
+    ]
+    for cand in candidates:
+        if cand is not None:
+            cand_path = Path(cand)
+            if cand_path.exists() and cand_path.is_file():
+                try:
+                    return SubprocessReferenceCodec(cand_path)
+                except Exception:
+                    continue
     return None
