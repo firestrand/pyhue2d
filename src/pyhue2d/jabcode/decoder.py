@@ -82,25 +82,123 @@ class JABCodeDecoder:
             "patterns_detected": 0,
         }
 
-    def _read_metadata_from_matrix(self, matrix: list[list[int]]) -> dict[str, int]:
+    def _get_metadata_coords(self, height: int, width: int, count: int) -> list[tuple[int, int]]:
+        """Get sequence of master symbol metadata module coordinates."""
+        coords: list[tuple[int, int]] = []
+        x, y = 6, 1
+        for i in range(count):
+            coords.append((x, y))
+            next_i = i + 1
+            if next_i % 4 == 0 or next_i % 4 == 2:
+                y = height - 1 - y
+            if next_i % 4 == 1 or next_i % 4 == 3:
+                x = width - 1 - x
+            if next_i % 4 == 0:
+                if next_i <= 20 or (44 <= next_i <= 68) or (96 <= next_i <= 124) or (156 <= next_i <= 172):
+                    y += 1
+                elif (20 < next_i < 44) or (68 < next_i < 96) or (124 < next_i < 156):
+                    x -= 1
+            if next_i in (44, 96, 156):
+                x, y = y, x
+        return coords
+
+    def _read_metadata_from_matrix(self, matrix: list[list[int]]) -> dict[str, Any]:
         """Read symbol metadata from metadata modules in the matrix."""
+        height = len(matrix)
+        width = len(matrix[0]) if height > 0 else 0
+        if height < 21 or width < 21:
+            return {
+                "version": 1,
+                "color_count": 8,
+                "ecc_level": 3,
+                "mask_pattern": 7,
+                "wc": 4,
+                "wr": 9,
+                "is_default": True,
+                "metadata_coords": [],
+            }
+
         m0 = matrix[1][6]
-        m4 = matrix[2][6]
-        m8 = matrix[3][6]
-        m12 = matrix[4][6]
-        color_count = 8 if m0 == 5 else 4
-        version = 1 if m4 == 6 else (m4 % 32 + 1)
-        ecc_level = 3 if m8 == 1 else (m8 % 11)
-        mask_pattern = 7 if m12 == 2 else (m12 % 8)
-        if m0 != 5:
-            color_count = 4
-            ecc_level = (3 + m0) % 11
-        return {
-            "version": version,
-            "color_count": color_count,
-            "ecc_level": ecc_level,
-            "mask_pattern": mask_pattern,
+        m1 = matrix[1][14] if width > 14 else 5
+        nc_color_encode_table = {
+            (0, 0): 0,
+            (0, 3): 1,
+            (0, 6): 2,
+            (3, 0): 3,
+            (3, 3): 4,
+            (3, 6): 5,
+            (6, 0): 6,
+            (6, 3): 7,
         }
+        if (m0, m1) in nc_color_encode_table:
+            idx = nc_color_encode_table[(m0, m1)]
+            nc = 1 if idx == 3 else (2 if idx == 7 else (idx % 3 + 1))
+            color_count = 2 ** (nc + 1)
+            bits_per_mod = nc + 1
+            p2_start = 4 + 4 * (color_count - 2)
+            p2_count = (38 + bits_per_mod - 1) // bits_per_mod
+            total_meta_count = p2_start + p2_count
+            coords = self._get_metadata_coords(height, width, total_meta_count)
+
+            part2_mods = [matrix[y][x] for x, y in coords[p2_start:total_meta_count]]
+            p2_bits: list[int] = []
+            for m in part2_mods:
+                for b in range(bits_per_mod - 1, -1, -1):
+                    p2_bits.append((m >> b) & 1)
+            p2_bits = p2_bits[:38]
+            data_bits = p2_bits[19:38]
+            vx = int("".join(str(b) for b in data_bits[0:5]), 2) + 1
+            vy = int("".join(str(b) for b in data_bits[5:10]), 2) + 1
+            wc = int("".join(str(b) for b in data_bits[10:13]), 2) + 3
+            wr = int("".join(str(b) for b in data_bits[13:16]), 2) + 4
+            mask_pattern = int("".join(str(b) for b in data_bits[16:19]), 2)
+
+            wcwr2ecc: dict[tuple[int, int], int] = {
+                (4, 9): 3,
+                (5, 6): 5 if color_count == 8 else 9,
+                (7, 9): 3 if color_count == 4 else 3,
+                (4, 7): 5,
+                (3, 8): 1,
+                (3, 7): 2,
+                (3, 6): 4,
+                (4, 6): 6,
+                (3, 4): 7,
+                (4, 5): 8,
+                (6, 7): 10,
+            }
+            ecc_level = wcwr2ecc.get((wc, wr), 3)
+
+            return {
+                "version": max(vx, vy),
+                "color_count": color_count,
+                "ecc_level": ecc_level,
+                "mask_pattern": mask_pattern,
+                "wc": wc,
+                "wr": wr,
+                "is_default": False,
+                "metadata_coords": coords,
+            }
+        else:
+            m4 = matrix[2][6] if height > 2 and width > 6 else 6
+            m8 = matrix[3][6] if height > 3 and width > 6 else 1
+            m12 = matrix[4][6] if height > 4 and width > 6 else 2
+            version = 1 if m4 == 6 else (m4 % 32 + 1)
+            ecc_level = 3 if m8 == 1 else (m8 % 11)
+            mask_pattern = 7 if m12 == 2 else (m12 % 8)
+            color_count = 8
+            if m0 != 5:
+                color_count = 4
+                ecc_level = (3 + m0) % 11
+            return {
+                "version": version,
+                "color_count": color_count,
+                "ecc_level": ecc_level,
+                "mask_pattern": mask_pattern,
+                "wc": 4,
+                "wr": 9,
+                "is_default": True,
+                "metadata_coords": [],
+            }
 
     def decode(
         self,
@@ -179,14 +277,31 @@ class JABCodeDecoder:
             color_count = meta["color_count"]
             ecc_level = meta["ecc_level"]
             mask_pattern = meta["mask_pattern"]
+            wc = meta.get("wc", 4)
+            wr = meta.get("wr", 9)
+            is_default = meta.get("is_default", True)
+            metadata_coords = meta.get("metadata_coords", [])
+            excluded = set(metadata_coords) if not is_default else None
 
             # Step 3: Demask module data
             codeword_bits = self.module_extractor.extract_demasked_bits(
-                matrix, mask_pattern=mask_pattern, color_count=8
+                matrix,
+                mask_pattern=mask_pattern,
+                color_count=color_count,
+                wr=wr,
+                excluded_coords=excluded,
             )
 
             # Step 4: LDPC decode
-            data_bits, corrected_errors = self.ldpc_codec.decode_codeword_bits_with_correction(
+            codec = (
+                self.ldpc_codec
+                if is_default
+                else LDPCCodec(
+                    LDPCParameters(wc=wc, wr=wr, ecc_level=ecc_level),
+                    RandomSeedConfig(),
+                )
+            )
+            data_bits, corrected_errors = codec.decode_codeword_bits_with_correction(
                 codeword_bits, error_correction=error_correction
             )
 

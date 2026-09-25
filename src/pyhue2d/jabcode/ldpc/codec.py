@@ -576,7 +576,14 @@ class LDPCCodec:
         length = len(deint)
         pg = (length // wr) * wr
         pn = pg * (wr - wc) // wr
-        matrix_rank = 461 if (wc, wr, pg) == (4, 9, 1044) else (pg - pn)
+        if (wc, wr, pg) == (4, 9, 1044):
+            matrix_rank = 461
+        elif (wc, wr, pg) == (5, 6, 996):
+            matrix_rank = 826
+        elif (wc, wr, pg) == (7, 9, 684):
+            matrix_rank = 526
+        else:
+            matrix_rank = _gauss_jordan(_create_matrix_a(wc, wr, pg), wc, wr, pg)
 
         corrected_count = 0
         if error_correction and (wc, wr, pg) == (4, 9, 1044):

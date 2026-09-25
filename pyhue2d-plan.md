@@ -74,9 +74,9 @@ Invalid mutations of approved captures are allowed for rejection tests. No gener
 | PRD traceability | Requirements inventory + Fact Ledger + task `PRD Trace` | Pass | — | — |
 | Real-data only | Real Data Manifest | Pass | — | — |
 | Fixture pixel integrity | V0A checker against sidecar `final_image_size` and recorded hashes | Blocked: V1, V2, V4, V5, V6, V7, V8, V9, V10, V11 | V1–V11 | V0A.4 |
-| Varied palette/ECC captures | LOCAL-DATA-06 | Blocked: V14 | V14 | V13 |
+| Varied palette/ECC captures | LOCAL-DATA-06 | Pass | — | — |
 | Photographed scans | LOCAL-DATA-07 | Blocked: V18 | V18 | V17 |
-| Official jabcode binary | LOCAL-DATA-05 | Blocked: V16 | V16 | V15 |
+| Official jabcode binary | LOCAL-DATA-05 | Pass | — | — |
 | Provider replaceability | Provider Boundary Matrix | Pass | — | — |
 | Vertical slicing | Phase list; each Capability phase names `Facts Introduced` | Pass | — | — |
 | Fact coverage | Every LOCAL-AC row has one Tier-1 fact | Pass | — | — |
@@ -112,8 +112,8 @@ Fixture-integrity blocking means those phases must not start until V0A.4 passes.
 | JAB.EXPORT.SVG_EXAMPLE1.v1 | Given the `example1` plaintext and sidecar parameters, when an SVG is exported, then each module's fill is the sidecar palette entry for that module's index | `example1` only | Public API | LOCAL-AC-13 | product | Proposed | EV-14 |
 | JAB.EXPORT.PDF_EXAMPLE1.v1 | Given the same input, when a PDF is exported, then each module's color matches the same palette index | `example1` only | Public API | LOCAL-AC-14 | product | Proposed | EV-15 |
 | JAB.FRAME.EXAMPLE1_PAYLOAD.v1 | Given a frame source that yields the approved `example1` PNG, when a frame is decoded, then the payload equals the sidecar plaintext | File-backed frames of `example1` only. Not a live camera | Public API | LOCAL-AC-15 | product | Proposed | EV-16 |
-| JAB.METADATA.VARIED_CAPTURE.v1 | Given an approved capture whose color count or ECC integer differs from `example1`, when decoded, then the reported color count and ECC integer equal that capture's sidecar | The captures acquired in V13, not the current 8-color ECC-3/0 set | Compatibility | LOCAL-AC-16 | product | Proposed | EV-17 |
-| JAB.REFERENCE.ACCEPTS_ENCODE.v1 | Given the `example1` plaintext and sidecar parameters, when this library encodes an image and the official decoder reads it, then the official decoder returns the same plaintext | Official CLI available, `example1` parameters only | Compatibility | LOCAL-AC-17 | product | Proposed | EV-18 |
+| JAB.METADATA.VARIED_CAPTURE.v1 | Given an approved capture whose color count or ECC integer differs from `example1`, when decoded, then the reported color count and ECC integer equal that capture's sidecar | The captures acquired in V13, not the current 8-color ECC-3/0 set | Compatibility | LOCAL-AC-16 | product | Verified | EV-17 |
+| JAB.REFERENCE.ACCEPTS_ENCODE.v1 | Given the `example1` plaintext and sidecar parameters, when this library encodes an image and the official decoder reads it, then the official decoder returns the same plaintext | Official CLI available, `example1` parameters only | Compatibility | LOCAL-AC-17 | product | Verified | EV-18 |
 | JAB.SCAN.PALETTE_CALIBRATION.v1 | Given an approved photograph of a printed symbol and its plaintext sidecar, when decoded, then the payload equals that plaintext | The photographs acquired in V17 only | Compatibility | LOCAL-AC-18 | product | Proposed | EV-19 |
 
 `JAB.DECODE.EXAMPLE1_PARAMETERS.v1` is deliberately narrower than "the decoder reads metadata." A hardcoded `(8, 3, 7, 1)` satisfies it. `JAB.METADATA.FOLLOWS_MODULES.v1` is the claim that closes that hole for this one layout. `JAB.METADATA.VARIED_CAPTURE.v1` extends it to other parameter sets once those captures exist.
@@ -138,8 +138,8 @@ Fixture-integrity blocking means those phases must not start until V0A.4 passes.
 | EV-14 | JAB.EXPORT.SVG_EXAMPLE1.v1 | test | `uv run pytest tests/facts/test_export_svg.py::test_example1_svg_colors` | LOCAL-DATA-01 palette and matrix | LOCAL-DATA-01@V0A | hermetic | Unknown |
 | EV-15 | JAB.EXPORT.PDF_EXAMPLE1.v1 | test | `uv run pytest tests/facts/test_export_pdf.py::test_example1_pdf_colors` | LOCAL-DATA-01 palette and matrix | LOCAL-DATA-01@V0A | hermetic | Unknown |
 | EV-16 | JAB.FRAME.EXAMPLE1_PAYLOAD.v1 | test | `uv run pytest tests/facts/test_frame_decode.py::test_example1_frame` | LOCAL-DATA-01; FrameSource port | LOCAL-DATA-01@V0A | hermetic | Unknown |
-| EV-17 | JAB.METADATA.VARIED_CAPTURE.v1 | test | `uv run pytest tests/facts/test_varied_parameters.py` | LOCAL-DATA-06 | LOCAL-DATA-06@V13 | hermetic | Unknown |
-| EV-18 | JAB.REFERENCE.ACCEPTS_ENCODE.v1 | test | `uv run pytest tests/facts/test_reference_cli.py` | LOCAL-DATA-05 binary; LOCAL-DATA-01 plaintext | LOCAL-DATA-05@V15 | sandbox CLI | Unknown |
+| EV-17 | JAB.METADATA.VARIED_CAPTURE.v1 | test | `uv run pytest tests/facts/test_varied_parameters.py` | LOCAL-DATA-06 | LOCAL-DATA-06@V13 | hermetic | Passed |
+| EV-18 | JAB.REFERENCE.ACCEPTS_ENCODE.v1 | test | `uv run pytest tests/facts/test_reference_cli.py` | LOCAL-DATA-05 binary; LOCAL-DATA-01 plaintext | LOCAL-DATA-05@V15 | sandbox CLI | Passed |
 | EV-19 | JAB.SCAN.PALETTE_CALIBRATION.v1 | test | `uv run pytest tests/facts/test_photo_scan.py` | LOCAL-DATA-07 | LOCAL-DATA-07@V17 | hermetic | Unknown |
 | EV-20 | JAB.DECODE.LOGS_OMIT_PAYLOAD.v1 | test | `uv run mutmut run --paths-to-mutate src/pyhue2d/jabcode/decoder.py` | mutmut config; tests/facts/test_decode_logs.py | — | hermetic | Unknown |
 | EV-21 | JAB.DECODE.LOGS_OMIT_PAYLOAD.v1 | test | `uv run pytest tests/facts/test_decode_logs.py` | tests/support/log_capture.py; LOCAL-DATA-01 | LOCAL-DATA-01@V0A | hermetic | Unknown |
@@ -1213,9 +1213,9 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Dependencies:** Official CLI available to the operator, or captures the operator exports and drops into the gate. This phase does not download a binary by itself; that is V15. The operator may produce LOCAL-DATA-06 with a binary they already have.
 **Risks:** Inventing a PNG is forbidden. If the operator cannot export, V14 stays blocked.
 **Acceptance Criteria:**
-- [ ] LOCAL-DATA-06 rows exist in the manifest and `SHA256SUMS`
-- [ ] Sidecars record color count and ECC integer different from `example1` in the way the phase goal states
-- [ ] No synthetic image is committed
+- [x] LOCAL-DATA-06 rows exist in the manifest and `SHA256SUMS`
+- [x] Sidecars record color count and ECC integer different from `example1` in the way the phase goal states
+- [x] No synthetic image is committed
 - [ ] **Stage changes for human review**
 
 ### Phase V14: Parameters on the varied captures
@@ -1233,8 +1233,8 @@ Unexpanded tasks V11.2 (test EV-16) and V11.3 (implement `PngFrameSource`) are r
 **Dependencies:** V13 exit. Blocked until then.
 **Risks:** Hardcoded `example1` parameters will fail these captures. That is the point. Do not special-case the new files.
 **Acceptance Criteria:**
-- [ ] EV-17 passes
-- [ ] EV-04 still expects the `example1` values
+- [x] EV-17 passes
+- [x] EV-04 still expects the `example1` values
 - [ ] **Stage changes for human review**
 
 ### Phase V15: Data gate — official `jabcode` binary

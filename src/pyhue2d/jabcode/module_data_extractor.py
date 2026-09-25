@@ -530,6 +530,8 @@ class ModuleDataExtractor:
         symbol_matrix: List[List[int]],
         mask_pattern: int = 7,
         color_count: int = 8,
+        wr: int = 9,
+        excluded_coords: Optional[set[tuple[int, int]]] = None,
     ) -> List[int]:
         """Extract demasked bitstream from a symbol matrix.
 
@@ -537,6 +539,8 @@ class ModuleDataExtractor:
             symbol_matrix: 2D list of color index integers (height, width).
             mask_pattern: Mask pattern index (0-7).
             color_count: Number of colors (e.g. 8).
+            wr: LDPC row weight (default 9).
+            excluded_coords: Optional set of (x, y) coordinates to exclude (e.g. metadata).
 
         Returns:
             List of binary ints (0 or 1) representing the demasked codeword.
@@ -574,7 +578,7 @@ class ModuleDataExtractor:
         # Column-major extraction
         for x in range(width):
             for y in range(height):
-                if v1_data_map[y][x] == 1:
+                if v1_data_map[y][x] == 1 and (excluded_coords is None or (x, y) not in excluded_coords):
                     raw_val = symbol_matrix[y][x]
                     mask_val = self._calculate_mask_value(x, y, mask_pattern, color_count)
                     demasked_val = raw_val ^ mask_val
@@ -585,8 +589,8 @@ class ModuleDataExtractor:
             for b in range(bits_per_mod - 1, -1, -1):
                 bits.append((val >> b) & 1)
 
-        # For Version 1 / wr = 9: Pg = 1044 bits
-        target_len = (len(bits) // 9) * 9
+        # Truncate to gross codeword length divisible by wr
+        target_len = (len(bits) // wr) * wr
         return bits[:target_len]
 
     def extract_demasked_codeword(
