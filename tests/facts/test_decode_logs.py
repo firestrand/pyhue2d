@@ -38,3 +38,22 @@ def test_decode_logs_omit_payload():
         r for r in log_handler.records if getattr(r, "msg", "") == "decode_complete" or "decode_complete" in str(r.msg)
     ]
     assert len(complete_records) >= 1, "decode_complete record not found in logs"
+
+
+def test_failed_decode_logs_omit_payload():
+    """Failed decode logs and stdout must never contain fixture plaintext."""
+    sidecar = load_sidecar("example1.png")
+    # Mutate image severely so decode fails
+    corrupt_image = Image.new("RGB", (252, 252), (128, 128, 128))
+
+    with capture_logs_and_stdout() as (log_handler, captured_stdout):
+        try:
+            _ = pyhue2d.decode(corrupt_image)
+        except Exception:
+            pass
+
+    stdout_text = captured_stdout.getvalue()
+    all_log_text = "\n".join(log_handler.messages)
+
+    assert sidecar.input_text not in stdout_text, "Plaintext leaked to stdout on failure!"
+    assert sidecar.input_text not in all_log_text, "Plaintext leaked to logger on failure!"

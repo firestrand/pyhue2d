@@ -1,7 +1,19 @@
 # Changelog
 
-## 0.1.0 (2025-06-17)
+## Unreleased
 
+### Features
+* Introduced structured `DecodeResult`, `EncodeResult`, `CapacityResult`, and `InspectResult` public result types.
+* Added SVG (`export_svg`) and vector PDF (`export_pdf`) export capabilities.
+* Added `FrameSource` and `decode_frame` API.
+* Added `pyhue2d inspect` CLI command.
+* Enforced zero-print policy in library code with Ruff T201.
+
+### Environment & Toolchain
+* Updated minimum runtime Python requirement to `>=3.12`.
+* Migrated toolchain to `uv`, `ruff`, and `ty`.
+
+## 0.1.0 (2025-06-17)
 
 ### Documentation
 

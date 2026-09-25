@@ -1,0 +1,38 @@
+         2327 function calls in 0.046 seconds
+
+   Ordered by: cumulative time
+   List reduced from 137 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.046    0.046 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/core.py:76(decode)
+        1    0.000    0.000    0.046    0.046 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/decoder.py:105(decode)
+        2    0.000    0.000    0.031    0.016 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/numpy/_core/fromnumeric.py:3871(std)
+        2    0.000    0.000    0.031    0.016 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/numpy/_core/_methods.py:217(_std)
+        2    0.019    0.009    0.031    0.016 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/numpy/_core/_methods.py:148(_var)
+        1    0.002    0.002    0.014    0.014 {built-in method numpy.array}
+        4    0.012    0.003    0.012    0.003 {method 'reduce' of 'numpy.ufunc' objects}
+        1    0.000    0.000    0.012    0.012 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/Image.py:804(__array_interface__)
+        1    0.000    0.000    0.012    0.012 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/Image.py:842(tobytes)
+        1    0.000    0.000    0.008    0.008 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/ImageFile.py:291(load)
+      100    0.007    0.000    0.007    0.000 {method 'decode' of 'ImagingDecoder' objects}
+      387    0.002    0.000    0.002    0.000 {method 'encode' of 'ImagingEncoder' objects}
+        1    0.001    0.001    0.001    0.001 {method 'join' of 'bytes' objects}
+      309    0.001    0.000    0.001    0.000 {method 'read' of '_io.BufferedReader' objects}
+      100    0.000    0.000    0.001    0.000 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/PngImagePlugin.py:992(load_read)
+        1    0.000    0.000    0.001    0.001 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/decoder.py:222(_load_image)
+        1    0.000    0.000    0.001    0.001 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/Image.py:3585(open)
+        1    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/decoder.py:48(__init__)
+      103    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/PngImagePlugin.py:167(read)
+        1    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/image_processing/finder_detector.py:53(__init__)
+        1    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/image_processing/finder_detector.py:412(_create_templates)
+        4    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/patterns/finder.py:208(generate_pattern)
+        1    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/Image.py:3660(_open_core)
+        1    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/ImageFile.py:117(__init__)
+        1    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/PngImagePlugin.py:765(_open)
+        4    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/patterns/finder.py:53(generate_finder_pattern_layers)
+      103    0.000    0.000    0.000    0.000 {method 'tell' of '_io.BufferedReader' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method _io.open}
+       36    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/patterns/finder.py:106(_place_corner_modules)
+        4    0.000    0.000    0.000    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/patterns/finder.py:166(extract_finder_pattern)
+
+

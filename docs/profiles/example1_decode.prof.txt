@@ -1,0 +1,38 @@
+         48278 function calls (47823 primitive calls) in 0.358 seconds
+
+   Ordered by: cumulative time
+   List reduced from 429 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.358    0.358 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/core.py:76(decode)
+        1    0.000    0.000    0.357    0.357 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/decoder.py:105(decode)
+        1    0.092    0.092    0.347    0.347 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/ldpc/codec.py:561(decode_codeword_bits_with_correction)
+        1    0.158    0.158    0.158    0.158 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/ldpc/codec.py:105(_gauss_jordan)
+        1    0.095    0.095    0.097    0.097 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/ldpc/codec.py:71(_create_matrix_a)
+        1    0.000    0.000    0.005    0.005 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/decoder.py:222(_load_image)
+        1    0.000    0.000    0.005    0.005 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/Image.py:3585(open)
+        1    0.000    0.000    0.005    0.005 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/Image.py:405(_import_plugin_for_extension)
+      9/1    0.000    0.000    0.005    0.005 {built-in method builtins.__import__}
+     13/1    0.000    0.000    0.005    0.005 <frozen importlib._bootstrap>:1349(_find_and_load)
+     13/1    0.000    0.000    0.005    0.005 <frozen importlib._bootstrap>:1304(_find_and_load_unlocked)
+     13/1    0.000    0.000    0.005    0.005 <frozen importlib._bootstrap>:911(_load_unlocked)
+     11/1    0.000    0.000    0.005    0.005 <frozen importlib._bootstrap_external>:1017(exec_module)
+     34/2    0.000    0.000    0.004    0.002 <frozen importlib._bootstrap>:480(_call_with_frames_removed)
+     11/1    0.000    0.000    0.004    0.004 {built-in method builtins.exec}
+        1    0.000    0.000    0.004    0.004 /Users/firestrand/Projects/pyhue2d/.venv/lib/python3.13/site-packages/PIL/PngImagePlugin.py:1(<module>)
+        1    0.000    0.000    0.004    0.004 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/image_processing/symbol_sampler.py:262(sample_symbol_matrix)
+      625    0.000    0.000    0.003    0.000 {built-in method builtins.min}
+     3528    0.001    0.000    0.002    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/image_processing/symbol_sampler.py:299(<lambda>)
+     4176    0.001    0.000    0.002    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/ldpc/codec.py:34(lcg64_temper)
+        1    0.000    0.000    0.002    0.002 /Users/firestrand/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/fractions.py:1(<module>)
+     3528    0.001    0.000    0.002    0.000 {built-in method builtins.sum}
+        5    0.000    0.000    0.002    0.000 /Users/firestrand/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/re/__init__.py:287(compile)
+        5    0.000    0.000    0.002    0.000 /Users/firestrand/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/re/__init__.py:330(_compile)
+      6/1    0.000    0.000    0.002    0.002 <frozen importlib._bootstrap>:1398(_handle_fromlist)
+        5    0.000    0.000    0.002    0.000 /Users/firestrand/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/re/_compiler.py:743(compile)
+        1    0.000    0.000    0.001    0.001 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/ldpc/codec.py:550(deinterleave)
+        1    0.001    0.001    0.001    0.001 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/ldpc/codec.py:39(deinterleave_bits)
+     4176    0.001    0.000    0.001    0.000 /Users/firestrand/Projects/pyhue2d/src/pyhue2d/jabcode/ldpc/codec.py:15(_temper)
+        5    0.000    0.000    0.001    0.000 /Users/firestrand/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/re/_parser.py:970(parse)
+
+
