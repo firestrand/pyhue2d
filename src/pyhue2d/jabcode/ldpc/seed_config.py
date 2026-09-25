@@ -144,7 +144,7 @@ class RandomSeedConfig:
 
     def __repr__(self) -> str:
         """Detailed string representation."""
-        return f"RandomSeedConfig(metadata_seed={self.metadata_seed}, " f"message_seed={self.message_seed})"
+        return f"RandomSeedConfig(metadata_seed={self.metadata_seed}, message_seed={self.message_seed})"
 
     @classmethod
     def create_default(cls) -> "RandomSeedConfig":

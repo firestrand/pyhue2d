@@ -27,8 +27,9 @@ class TestEncodeArgs:
         assert args.palette == 8
         assert args.ecc_level == "M"
         assert args.version == "auto"
-        assert args.quiet_zone == 2
+        assert args.quiet_zone == 4
         assert args.mask_pattern == 7
+        assert args.module_size == 12
 
     def test_input_source_validation_nonexistent_file(self):
         """Test validation fails for nonexistent input file."""

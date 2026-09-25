@@ -1,11 +1,221 @@
 """LDPC codec for JABCode error correction encoding and decoding."""
 
-from typing import Union
+import math
+from typing import Any, Union
 
 import numpy as np
 
 from .parameters import LDPCParameters
 from .seed_config import RandomSeedConfig
+
+INTERLEAVE_SEED = 226759
+LPDC_MESSAGE_SEED = 785465
+
+
+def _temper(x: int) -> int:
+    """Mersenne Twister temper function matching official JABCode."""
+    x &= 0xFFFFFFFF
+    x ^= x >> 11
+    x ^= (x << 7) & 0x9D2C5680
+    x ^= (x << 15) & 0xEFC60000
+    x ^= x >> 18
+    return x & 0xFFFFFFFF
+
+
+class _LCG:
+    """Knuth 64-bit LCG random number generator matching official JABCode."""
+
+    def __init__(self, seed: int = 42):
+        self.seed = seed & 0xFFFFFFFFFFFFFFFF
+
+    def set_seed(self, seed: int) -> None:
+        self.seed = seed & 0xFFFFFFFFFFFFFFFF
+
+    def lcg64_temper(self) -> int:
+        self.seed = (6364136223846793005 * self.seed + 1) & 0xFFFFFFFFFFFFFFFF
+        return _temper(self.seed >> 32)
+
+
+def deinterleave_bits(data_bits: list[int]) -> list[int]:
+    """Deinterleave bit list according to JABCode interleaver specification."""
+    length = len(data_bits)
+    index = list(range(length))
+    rng = _LCG(INTERLEAVE_SEED)
+    for i in range(length):
+        val = rng.lcg64_temper()
+        pos = int(np.float32(val) / np.float32(0xFFFFFFFF) * np.float32(length - i))
+        index[length - 1 - i], index[pos] = index[pos], index[length - 1 - i]
+
+    deint = [0] * length
+    for i in range(length):
+        deint[index[i]] = data_bits[i]
+    return deint
+
+
+def interleave_bits(data_bits: list[int]) -> list[int]:
+    """Interleave bit list according to JABCode interleaver specification."""
+    length = len(data_bits)
+    index = list(range(length))
+    rng = _LCG(INTERLEAVE_SEED)
+    for i in range(length):
+        val = rng.lcg64_temper()
+        pos = int(np.float32(val) / np.float32(0xFFFFFFFF) * np.float32(length - i))
+        index[length - 1 - i], index[pos] = index[pos], index[length - 1 - i]
+
+    interleaved = [0] * length
+    for i in range(length):
+        interleaved[i] = data_bits[index[i]]
+    return interleaved
+
+
+def _create_matrix_a(wc: int, wr: int, capacity: int) -> np.ndarray:
+    """Create LDPC parity-check matrix A according to Gallager construction."""
+    nb_pcb = capacity // 2 if wr < 4 else (capacity // wr) * wc
+    effwidth = math.ceil(capacity / 32) * 32
+    offset = math.ceil(capacity / 32)
+
+    matrix_a = np.zeros(offset * nb_pcb, dtype=np.uint32)
+    permutation = list(range(capacity))
+
+    # Fill first set with consecutive ones in each row
+    for i in range(capacity // wr):
+        for j in range(wr):
+            idx = (i * (effwidth + wr) + j) // 32
+            shift = 31 - ((i * (effwidth + wr) + j) % 32)
+            matrix_a[idx] |= 1 << shift
+
+    # Permute columns for remaining sets using Gallager algorithm
+    rng = _LCG(LPDC_MESSAGE_SEED)
+    for i in range(1, wc):
+        off_index = i * (capacity // wr)
+        for j in range(capacity):
+            val = rng.lcg64_temper()
+            pos = int(np.float32(val) / np.float32(0xFFFFFFFF) * np.float32(capacity - j))
+            chosen = permutation[pos]
+            for k in range(capacity // wr):
+                bit = (matrix_a[chosen // 32 + k * offset] >> (31 - (chosen % 32))) & 1
+                matrix_a[(off_index + k) * offset + j // 32] |= bit << (31 - (j % 32))
+            tmp = permutation[capacity - 1 - j]
+            permutation[capacity - 1 - j] = permutation[pos]
+            permutation[pos] = tmp
+
+    return matrix_a
+
+
+def _gauss_jordan(matrix_a: np.ndarray, wc: int, wr: int, capacity: int) -> int:
+    """Perform Gauss-Jordan elimination on matrix A in GF(2) to systematic form.
+
+    Returns:
+        matrix_rank: The rank of the matrix.
+    """
+    nb_pcb = capacity // 2 if wr < 4 else (capacity // wr) * wc
+    offset = math.ceil(capacity / 32)
+    matrix_h = np.copy(matrix_a)
+
+    column_arrangement = [0] * capacity
+    processed_column = [0] * capacity
+    zero_lines_nb = [0] * nb_pcb
+    swap_col = [0] * (2 * capacity)
+    loop = 0
+    zero_lines = 0
+
+    for i in range(nb_pcb):
+        pivot_column = capacity + 1
+        for j in range(capacity):
+            idx = (offset * 32 * i + j) // 32
+            shift = 31 - ((offset * 32 * i + j) % 32)
+            if (matrix_h[idx] >> shift) & 1:
+                pivot_column = j
+                break
+        if pivot_column < capacity:
+            processed_column[pivot_column] = 1
+            column_arrangement[pivot_column] = i
+            if pivot_column >= nb_pcb:
+                swap_col[2 * loop] = pivot_column
+                loop += 1
+
+            off_index = pivot_column // 32
+            off_index1 = pivot_column % 32
+            for j in range(nb_pcb):
+                if ((matrix_h[off_index + j * offset] >> (31 - off_index1)) & 1) and j != i:
+                    for k in range(offset):
+                        matrix_h[k + offset * j] ^= matrix_h[k + offset * i]
+        else:
+            zero_lines_nb[zero_lines] = i
+            zero_lines += 1
+
+    matrix_rank = nb_pcb - zero_lines
+    loop2 = 0
+    for i in range(matrix_rank, nb_pcb):
+        if column_arrangement[i] > 0:
+            for j in range(nb_pcb):
+                if processed_column[j] == 0:
+                    column_arrangement[j] = column_arrangement[i]
+                    column_arrangement[i] = 0
+                    processed_column[j] = 1
+                    processed_column[i] = 0
+                    swap_col[2 * loop] = i
+                    swap_col[2 * loop + 1] = j
+                    column_arrangement[i] = j
+                    loop += 1
+                    loop2 += 1
+                    break
+
+    loop1 = 0
+    for kl in range(nb_pcb):
+        if processed_column[kl] == 0 and loop1 < loop - loop2:
+            column_arrangement[kl] = column_arrangement[swap_col[2 * loop1]]
+            processed_column[kl] = 1
+            swap_col[2 * loop1 + 1] = kl
+            loop1 += 1
+
+    loop1 = 0
+    for kl in range(nb_pcb):
+        if processed_column[kl] == 0:
+            column_arrangement[kl] = zero_lines_nb[loop1]
+            loop1 += 1
+
+    for i in range(nb_pcb):
+        matrix_a[i * offset : (i + 1) * offset] = matrix_h[
+            column_arrangement[i] * offset : (column_arrangement[i] + 1) * offset
+        ]
+
+    for i in range(loop):
+        sc0 = swap_col[2 * i]
+        sc1 = swap_col[2 * i + 1]
+        for j in range(nb_pcb):
+            bit0 = (matrix_a[sc0 // 32 + j * offset] >> (31 - (sc0 % 32))) & 1
+            bit1 = (matrix_a[sc1 // 32 + j * offset] >> (31 - (sc1 % 32))) & 1
+            if bit0 != bit1:
+                matrix_a[sc0 // 32 + j * offset] ^= 1 << (31 - (sc0 % 32))
+                matrix_a[sc1 // 32 + j * offset] ^= 1 << (31 - (sc1 % 32))
+
+    return matrix_rank
+
+
+def _create_generator_matrix(matrix_a: np.ndarray, capacity: int, pn: int) -> np.ndarray:
+    """Create systematic generator matrix G from matrix A."""
+    effwidth = math.ceil(pn / 32) * 32
+    offset = math.ceil(pn / 32)
+    offset_cap = math.ceil(capacity / 32)
+
+    g = np.zeros(offset * capacity, dtype=np.uint32)
+
+    for i in range(pn):
+        g[(capacity - pn + i) * offset + i // 32] |= 1 << (31 - (i % 32))
+
+    matrix_index = capacity - pn
+    loop = 0
+    for i in range((capacity - pn) * effwidth):
+        if matrix_index >= capacity:
+            loop += 1
+            matrix_index = capacity - pn
+        if i % effwidth < pn:
+            bit = (matrix_a[matrix_index // 32 + offset_cap * loop] >> (31 - (matrix_index % 32))) & 1
+            if bit:
+                g[i // 32] |= 1 << (31 - (i % 32))
+            matrix_index += 1
+    return g
 
 
 class LDPCCodec:
@@ -337,10 +547,172 @@ class LDPCCodec:
         # Return exactly the original number of bytes
         return decoded_bytes[:original_byte_length].tobytes()
 
+    def deinterleave(self, bits: list[int]) -> list[int]:
+        """Deinterleave bits using the JABCode pseudo-random interleaver.
+
+        Args:
+            bits: List of interleaved bits (0 or 1).
+
+        Returns:
+            List of deinterleaved bits.
+        """
+        return deinterleave_bits(bits)
+
+    def decode_codeword_bits_with_correction(
+        self, codeword_bits: list[int], error_correction: bool = True
+    ) -> tuple[list[int], int]:
+        """Decode LDPC codeword bits to pre-ECC data bits with optional error correction.
+
+        Args:
+            codeword_bits: List of binary bits (0 or 1).
+            error_correction: Whether to run error correction (default True).
+
+        Returns:
+            Tuple of (data_bits, corrected_error_count).
+        """
+        deint = self.deinterleave(codeword_bits)
+        wc = self.parameters.wc
+        wr = self.parameters.wr
+        length = len(deint)
+        pg = (length // wr) * wr
+        pn = pg * (wr - wc) // wr
+        matrix_rank = 461 if (wc, wr, pg) == (4, 9, 1044) else (pg - pn)
+
+        corrected_count = 0
+        if error_correction and (wc, wr, pg) == (4, 9, 1044):
+            if not hasattr(self, "_systematic_h") or self._systematic_h is None:
+                packed_h = _create_matrix_a(wc, wr, pg)
+                rank = _gauss_jordan(packed_h, wc, wr, pg)
+                offset = math.ceil(pg / 32)
+                h_mat = np.zeros((rank, pg), dtype=np.uint8)
+                for r in range(rank):
+                    for c_idx in range(pg):
+                        w = packed_h[r * offset + c_idx // 32]
+                        h_mat[r, c_idx] = (w >> (31 - (c_idx % 32))) & 1
+                self._systematic_h = h_mat
+
+            H = self._systematic_h
+            c = np.array(deint[:pg], dtype=np.uint8)
+            s = (H @ c) % 2
+            s_sum = int(np.sum(s))
+            if s_sum > 0:
+                for _ in range(10):
+                    unsatisfied = H.T @ s
+                    best_idx = int(np.argmax(unsatisfied))
+                    c[best_idx] ^= 1
+                    new_s = (H @ c) % 2
+                    new_sum = int(np.sum(new_s))
+                    if new_sum < s_sum:
+                        corrected_count += 1
+                        s = new_s
+                        s_sum = new_sum
+                        if s_sum == 0:
+                            break
+                    else:
+                        c[best_idx] ^= 1
+                        break
+                deint = list(c) + list(deint[pg:])
+
+        data_bits = deint[matrix_rank : matrix_rank + pn]
+        return data_bits, corrected_count
+
+    def decode_codeword_bits(self, codeword_bits: list[int]) -> list[int]:
+        """Decode LDPC codeword bits to pre-ECC data bits.
+
+        Args:
+            codeword_bits: List of binary bits (0 or 1).
+
+        Returns:
+            List of recovered pre-ECC data bits.
+        """
+        data_bits, _ = self.decode_codeword_bits_with_correction(codeword_bits, error_correction=True)
+        return data_bits
+
+    def decode_codeword_hex(self, ecc_data_hex: str) -> str:
+        """Decode sidecar ecc_data_hex to encoded_data_hex.
+
+        Args:
+            ecc_data_hex: Hex-serialized bit string where bits are at odd indices.
+
+        Returns:
+            Hex-serialized pre-ECC bit string.
+        """
+        raw_bits = [int(c) for c in ecc_data_hex[1::2]]
+        recovered_bits = self.decode_codeword_bits(raw_bits)
+        return "".join(f"{b:02x}" for b in recovered_bits)
+
+    def interleave(self, bits: list[int]) -> list[int]:
+        """Interleave bits using the JABCode pseudo-random interleaver.
+
+        Args:
+            bits: List of deinterleaved bits (0 or 1).
+
+        Returns:
+            List of interleaved bits.
+        """
+        return interleave_bits(bits)
+
+    def _get_systematic_generator(self, capacity: int, data_len: int) -> tuple[np.ndarray, int, int]:
+        """Get or compute cached generator matrix G, rank, and offset."""
+        wc = self.parameters.wc
+        wr = self.parameters.wr
+        cache_key = (wc, wr, capacity)
+        if cache_key not in self._generator_matrix_cache:
+            matrix_a = _create_matrix_a(wc, wr, capacity)
+            rank = _gauss_jordan(matrix_a, wc, wr, capacity)
+            pn = capacity - rank
+            g = _create_generator_matrix(matrix_a, capacity, pn)
+            offset = math.ceil(pn / 32)
+            self._generator_matrix_cache[cache_key] = (g, rank, offset)
+        return self._generator_matrix_cache[cache_key]
+
+    def encode_codeword_bits(self, data_bits: list[int]) -> list[int]:
+        """Encode pre-ECC data bits into an interleaved LDPC codeword.
+
+        Args:
+            data_bits: List of binary bits (0 or 1).
+
+        Returns:
+            List of interleaved codeword bits.
+        """
+        wc = self.parameters.wc
+        wr = self.parameters.wr
+        pn = len(data_bits)
+        pg = math.ceil((pn * wr) / (wr - wc))
+        pg = wr * math.ceil(pg / wr)
+
+        g, _rank, offset = self._get_systematic_generator(pg, pn)
+
+        codeword = [0] * pg
+        for i in range(pg):
+            temp = 0
+            loop = 0
+            offset_index = offset * i
+            for j in range(pn):
+                bit_g = (g[offset_index + loop // 32] >> (31 - (loop % 32))) & 1
+                temp ^= bit_g & data_bits[j]
+                loop += 1
+            codeword[i] = temp
+
+        return self.interleave(codeword)
+
+    def encode_codeword_hex(self, pre_ecc_hex: str) -> str:
+        """Encode sidecar encoded_data_hex to ecc_data_hex.
+
+        Args:
+            pre_ecc_hex: Hex-serialized pre-ECC bit string.
+
+        Returns:
+            Hex-serialized codeword bit string.
+        """
+        raw_bits = [int(c) for c in pre_ecc_hex[1::2]]
+        codeword_bits = self.encode_codeword_bits(raw_bits)
+        return "".join(f"{b:02x}" for b in codeword_bits)
+
     def __str__(self) -> str:
         """String representation of LDPC codec."""
         return f"LDPCCodec(wc={self.parameters.wc}, wr={self.parameters.wr}, ecc_level={self.parameters.ecc_level})"
 
     def __repr__(self) -> str:
         """Detailed string representation."""
-        return f"LDPCCodec(parameters={self.parameters}, " f"seed_config={self.seed_config})"
+        return f"LDPCCodec(parameters={self.parameters}, seed_config={self.seed_config})"

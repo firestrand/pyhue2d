@@ -1,0 +1,59 @@
+{
+	"input_text":	"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+	"color_number":	8,
+	"module_size":	12,
+	"symbol_number":	6,
+	"master_symbol_width":	0,
+	"master_symbol_height":	0,
+	"ecc_levels":	[0, 0, 0, 0, 0, 0],
+	"symbol_versions":	[[32, 32], [32, 32], [32, 32], [32, 32], [32, 32], [32, 32]],
+	"color_space":	0,
+	"mask_pattern":	7,
+	"quiet_zone":	4,
+	"palette":	[[0, 0, 0], [0, 0, 255], [0, 255, 0], [0, 255, 255], [255, 0, 0], [255, 0, 255], [255, 255, 0], [255, 255, 255]],
+	"symbols":	[{
+			"matrix_size":	[145, 145],
+			"symbol_matrix":	"omitted_large_matrix",
+			"encoded_data_hex":	"omitted_large_data",
+			"ecc_data_hex":	"omitted_large_ecc",
+			"finder_patterns":	"not available in current build",
+			"alignment_patterns":	"not available in current build"
+		}, {
+			"matrix_size":	[145, 145],
+			"symbol_matrix":	"omitted_large_matrix",
+			"encoded_data_hex":	"omitted_large_data",
+			"ecc_data_hex":	"omitted_large_ecc",
+			"finder_patterns":	"not available in current build",
+			"alignment_patterns":	"not available in current build"
+		}, {
+			"matrix_size":	[145, 145],
+			"symbol_matrix":	"omitted_large_matrix",
+			"encoded_data_hex":	"omitted_large_data",
+			"ecc_data_hex":	"omitted_large_ecc",
+			"finder_patterns":	"not available in current build",
+			"alignment_patterns":	"not available in current build"
+		}, {
+			"matrix_size":	[145, 145],
+			"symbol_matrix":	"omitted_large_matrix",
+			"encoded_data_hex":	"omitted_large_data",
+			"ecc_data_hex":	"omitted_large_ecc",
+			"finder_patterns":	"not available in current build",
+			"alignment_patterns":	"not available in current build"
+		}, {
+			"matrix_size":	[145, 145],
+			"symbol_matrix":	"omitted_large_matrix",
+			"encoded_data_hex":	"omitted_large_data",
+			"ecc_data_hex":	"omitted_large_ecc",
+			"finder_patterns":	"not available in current build",
+			"alignment_patterns":	"not available in current build"
+		}, {
+			"matrix_size":	[145, 145],
+			"symbol_matrix":	"omitted_large_matrix",
+			"encoded_data_hex":	"omitted_large_data",
+			"ecc_data_hex":	"omitted_large_ecc",
+			"finder_patterns":	"not available in current build",
+			"alignment_patterns":	"not available in current build"
+		}],
+	"final_image_size":	[5220, 6960],
+	"notes":	"Some fields (finder/alignment patterns) are not available without deeper refactor. Full pre-ECC bitstream not logged to avoid memory issues."
+}

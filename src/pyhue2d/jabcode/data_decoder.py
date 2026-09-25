@@ -5,7 +5,7 @@ back to original text/bytes using the exact decoding tables and logic
 from the JABCode reference implementation.
 """
 
-from typing import List, Optional
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
@@ -175,194 +175,242 @@ class DataDecoder:
         """Initialize the data decoder."""
         pass
 
-    def decode_data(self, bits: np.ndarray) -> bytes:
+    def _extract_net_data(self, bits: Any) -> List[int]:
+        """Extract net message bits by stripping metadata flag and docked positions from tail."""
+        bit_list = [int(b) for b in bits]
+        offset = len(bit_list) - 1
+        while offset >= 0 and bit_list[offset] == 0:
+            offset -= 1
+        # Skip flag bit 1
+        offset -= 1
+        # Skip 4 docked position bits
+        offset -= 4
+        net_length = max(0, offset + 1)
+        return bit_list[:net_length]
+
+    def decode_data_from_bits(self, bits: Any) -> bytes:
+        """Extract net message bits and decode to original bytes.
+
+        Args:
+            bits: Binary array or list of pre-ECC data bits including tail flag.
+
+        Returns:
+            Decoded payload bytes.
+        """
+        net_bits = self._extract_net_data(bits)
+        return self.decode_data(net_bits)
+
+    def decode_data_from_hex(self, encoded_data_hex: str) -> bytes:
+        """Decode pre-ECC hex string (where bits are at odd indices) to plaintext bytes.
+
+        Args:
+            encoded_data_hex: Hex-serialized pre-ECC bitstream.
+
+        Returns:
+            Decoded payload bytes.
+        """
+        bits = [int(c) for c in encoded_data_hex[1::2]]
+        return self.decode_data_from_bits(bits)
+
+    def decode_data(self, bits: Any) -> bytes:
         """Decode bit array to original data using JABCode decoding logic.
 
         Args:
-            bits: Binary array of decoded bits
+            bits: Binary array or list of decoded bits
 
         Returns:
             Decoded data as bytes
-
-        Raises:
-            ValueError: If decoding fails
         """
-        if len(bits) == 0:
+        bit_list = [int(b) for b in bits]
+        if len(bit_list) == 0:
             return b""
 
         decoded_bytes = bytearray()
-        mode = "Upper"  # Start with uppercase mode
-        pre_mode = None
-        index = 0  # Current bit position
+        mode = "Upper"
+        pre_mode: Optional[str] = None
+        index = 0
 
-        while index < len(bits):
-            try:
-                # Read encoded value based on current mode
-                if mode != "Byte":
-                    char_size = self.CHARACTER_SIZES[mode]
-                    if index + char_size > len(bits):
-                        break  # Not enough bits left
+        def read_bits(idx: int, length: int) -> Tuple[Optional[int], int]:
+            if idx + length > len(bit_list):
+                return None, idx
+            val = 0
+            for i in range(length):
+                val = (val << 1) | bit_list[idx + i]
+            return val, idx + length
 
-                    value = self._read_data(bits, index, char_size)
-                    index += char_size
+        while index < len(bit_list):
+            flag = False
+            if mode != "Byte":
+                char_size = self.CHARACTER_SIZES[mode]
+                value, new_index = read_bits(index, char_size)
+                if value is None:
+                    break
+                index = new_index
+            else:
+                value = 0
+
+            if mode == "Upper":
+                if value <= 26:
+                    decoded_bytes.append(self.DECODING_TABLE_UPPER[value])
+                    if pre_mode is not None:
+                        mode = pre_mode
                 else:
-                    # Byte mode handled specially
-                    value, bytes_consumed = self._handle_byte_mode(bits, index)
-                    index += bytes_consumed
-
-                # Decode value according to current mode
-                if mode == "Upper":
-                    mode, pre_mode, decoded_byte = self._decode_upper(value, pre_mode)
-                elif mode == "Lower":
-                    mode, pre_mode, decoded_byte = self._decode_lower(value, pre_mode)
-                elif mode == "Numeric":
-                    mode, pre_mode, decoded_byte = self._decode_numeric(value, pre_mode)
-                elif mode == "Punct":
-                    mode, pre_mode, decoded_byte = self._decode_punct(value, pre_mode)
-                elif mode == "Mixed":
-                    mode, pre_mode, decoded_byte = self._decode_mixed(value, pre_mode)
-                elif mode == "Alphanumeric":
-                    mode, pre_mode, decoded_byte = self._decode_alphanumeric(value, pre_mode)
-                elif mode == "Byte":
-                    # Byte mode returns bytes directly
-                    decoded_bytes.extend(value)
+                    if value == 27:
+                        mode = "Punct"
+                        pre_mode = "Upper"
+                    elif value == 28:
+                        mode = "Lower"
+                        pre_mode = None
+                    elif value == 29:
+                        mode = "Numeric"
+                        pre_mode = None
+                    elif value == 30:
+                        mode = "Alphanumeric"
+                        pre_mode = None
+                    elif value == 31:
+                        val2, new_idx = read_bits(index, 2)
+                        if val2 is None:
+                            break
+                        index = new_idx
+                        if val2 == 0:
+                            mode = "Byte"
+                            pre_mode = "Upper"
+                        elif val2 == 1:
+                            mode = "Mixed"
+                            pre_mode = "Upper"
+                        elif val2 == 2:
+                            mode = "ECI"
+                            pre_mode = None
+                        elif val2 == 3:
+                            flag = True
+            elif mode == "Lower":
+                if value <= 26:
+                    decoded_bytes.append(self.DECODING_TABLE_LOWER[value])
+                    if pre_mode is not None:
+                        mode = pre_mode
+                else:
+                    if value == 27:
+                        mode = "Punct"
+                        pre_mode = "Lower"
+                    elif value == 28:
+                        mode = "Upper"
+                        pre_mode = "Lower"
+                    elif value == 29:
+                        mode = "Numeric"
+                        pre_mode = None
+                    elif value == 30:
+                        mode = "Alphanumeric"
+                        pre_mode = None
+                    elif value == 31:
+                        val2, new_idx = read_bits(index, 2)
+                        if val2 is None:
+                            break
+                        index = new_idx
+                        if val2 == 0:
+                            mode = "Byte"
+                            pre_mode = "Lower"
+                        elif val2 == 1:
+                            mode = "Mixed"
+                            pre_mode = "Lower"
+                        elif val2 == 2:
+                            mode = "Upper"
+                            pre_mode = None
+                        elif val2 == 3:
+                            mode = "FNC1"
+                            pre_mode = None
+            elif mode == "Numeric":
+                if value <= 12:
+                    decoded_bytes.append(self.DECODING_TABLE_NUMERIC[value])
+                    if pre_mode is not None:
+                        mode = pre_mode
+                else:
+                    if value == 13:
+                        mode = "Punct"
+                        pre_mode = "Numeric"
+                    elif value == 14:
+                        mode = "Upper"
+                        pre_mode = None
+                    elif value == 15:
+                        val2, new_idx = read_bits(index, 2)
+                        if val2 is None:
+                            break
+                        index = new_idx
+                        if val2 == 0:
+                            mode = "Byte"
+                            pre_mode = "Numeric"
+                        elif val2 == 1:
+                            mode = "Mixed"
+                            pre_mode = "Numeric"
+                        elif val2 == 2:
+                            mode = "Upper"
+                            pre_mode = "Numeric"
+                        elif val2 == 3:
+                            mode = "Lower"
+                            pre_mode = None
+            elif mode == "Punct":
+                if 0 <= value <= 15:
+                    decoded_bytes.append(self.DECODING_TABLE_PUNCT[value])
                     mode = pre_mode if pre_mode else "Upper"
-                    continue
+            elif mode == "Mixed":
+                if 0 <= value <= 31:
+                    if value == 19:
+                        decoded_bytes.extend([10, 13])
+                    elif value == 20:
+                        decoded_bytes.extend([44, 32])  # ", "
+                    elif value == 21:
+                        decoded_bytes.extend([46, 32])  # ". "
+                    elif value == 22:
+                        decoded_bytes.extend([58, 32])  # ": "
+                    else:
+                        decoded_bytes.append(self.DECODING_TABLE_MIXED[value])
+                    mode = pre_mode if pre_mode else "Upper"
+            elif mode == "Alphanumeric":
+                if value <= 62:
+                    decoded_bytes.append(self.DECODING_TABLE_ALPHANUMERIC[value])
+                    if pre_mode is not None:
+                        mode = pre_mode
+                elif value == 63:
+                    val2, new_idx = read_bits(index, 2)
+                    if val2 is None:
+                        break
+                    index = new_idx
+                    if val2 == 0:
+                        mode = "Byte"
+                        pre_mode = "Alphanumeric"
+                    elif val2 == 1:
+                        mode = "Mixed"
+                        pre_mode = "Alphanumeric"
+                    elif val2 == 2:
+                        mode = "Punct"
+                        pre_mode = "Alphanumeric"
+                    elif val2 == 3:
+                        mode = "Upper"
+                        pre_mode = None
+            elif mode == "Byte":
+                val4, new_idx = read_bits(index, 4)
+                if val4 is None:
+                    break
+                index = new_idx
+                if val4 == 0:
+                    val13, new_idx = read_bits(index, 13)
+                    if val13 is None:
+                        break
+                    index = new_idx
+                    byte_len = val13 + 16
                 else:
-                    # Unknown mode, skip
-                    continue
+                    byte_len = val4
 
-                # Add decoded byte if valid
-                if decoded_byte is not None:
-                    decoded_bytes.append(decoded_byte)
+                for _ in range(byte_len):
+                    b, new_idx = read_bits(index, 8)
+                    if b is None:
+                        break
+                    index = new_idx
+                    decoded_bytes.append(b)
+                mode = pre_mode if pre_mode else "Upper"
+            elif mode in ("ECI", "FNC1"):
+                break
 
-            except Exception as e:
-                # If decoding fails, stop processing
+            if flag:
                 break
 
         return bytes(decoded_bytes)
-
-    def _read_data(self, bits: np.ndarray, start: int, length: int) -> int:
-        """Read specified number of bits and convert to integer.
-
-        Args:
-            bits: Bit array
-            start: Starting bit index
-            length: Number of bits to read
-
-        Returns:
-            Integer value of the bits
-        """
-        if start + length > len(bits):
-            raise ValueError("Not enough bits to read")
-
-        value = 0
-        for i in range(length):
-            if start + i < len(bits):
-                value = (value << 1) | int(bits[start + i])
-        return value
-
-    def _decode_upper(self, value: int, pre_mode: Optional[str]) -> tuple:
-        """Decode uppercase mode value."""
-        if value <= 26:
-            return (pre_mode if pre_mode else "Upper", None, self.DECODING_TABLE_UPPER[value])
-        elif value == 27:
-            return ("Punct", "Upper", None)
-        elif value == 28:
-            return ("Lower", None, None)
-        elif value == 29:
-            return ("Numeric", None, None)
-        elif value == 30:
-            return ("Mixed", "Upper", None)
-        elif value == 31:
-            return ("Alphanumeric", "Upper", None)
-        else:
-            return ("Upper", pre_mode, None)
-
-    def _decode_lower(self, value: int, pre_mode: Optional[str]) -> tuple:
-        """Decode lowercase mode value."""
-        if value <= 26:
-            return (pre_mode if pre_mode else "Lower", None, self.DECODING_TABLE_LOWER[value])
-        elif value == 27:
-            return ("Punct", "Lower", None)
-        elif value == 28:
-            return ("Upper", None, None)
-        elif value == 29:
-            return ("Numeric", None, None)
-        elif value == 30:
-            return ("Mixed", "Lower", None)
-        elif value == 31:
-            return ("Alphanumeric", "Lower", None)
-        else:
-            return ("Lower", pre_mode, None)
-
-    def _decode_numeric(self, value: int, pre_mode: Optional[str]) -> tuple:
-        """Decode numeric mode value."""
-        if value <= 12:
-            return (pre_mode if pre_mode else "Numeric", None, self.DECODING_TABLE_NUMERIC[value])
-        elif value == 13:
-            return ("Alphanumeric", "Numeric", None)
-        elif value == 14:
-            return ("Upper", None, None)
-        elif value == 15:
-            return ("Lower", None, None)
-        else:
-            return ("Numeric", pre_mode, None)
-
-    def _decode_punct(self, value: int, pre_mode: Optional[str]) -> tuple:
-        """Decode punctuation mode value."""
-        if value <= 15:
-            return (pre_mode if pre_mode else "Upper", None, self.DECODING_TABLE_PUNCT[value])
-        else:
-            return ("Punct", pre_mode, None)
-
-    def _decode_mixed(self, value: int, pre_mode: Optional[str]) -> tuple:
-        """Decode mixed mode value."""
-        if value <= 31:
-            return (pre_mode if pre_mode else "Upper", None, self.DECODING_TABLE_MIXED[value])
-        else:
-            return ("Mixed", pre_mode, None)
-
-    def _decode_alphanumeric(self, value: int, pre_mode: Optional[str]) -> tuple:
-        """Decode alphanumeric mode value."""
-        if value <= 62:
-            return (pre_mode if pre_mode else "Upper", None, self.DECODING_TABLE_ALPHANUMERIC[value])
-        elif value == 63:
-            # Read 2 more bits for mode switch
-            return ("Upper", None, None)  # Simplified
-        else:
-            return ("Alphanumeric", pre_mode, None)
-
-    def _handle_byte_mode(self, bits: np.ndarray, index: int) -> tuple:
-        """Handle byte mode encoding.
-
-        Returns:
-            (decoded_bytes, bits_consumed)
-        """
-        # Read 4 bits for byte count
-        if index + 4 > len(bits):
-            raise ValueError("Not enough bits for byte mode")
-
-        value = self._read_data(bits, index, 4)
-        bits_consumed = 4
-
-        if value == 0:
-            # Read 13 more bits for extended count
-            if index + 4 + 13 > len(bits):
-                raise ValueError("Not enough bits for extended byte mode")
-            extended_value = self._read_data(bits, index + 4, 13)
-            byte_length = extended_value + 15 + 1
-            bits_consumed += 13
-        else:
-            byte_length = value
-
-        # Read the actual bytes
-        decoded_bytes = bytearray()
-        for i in range(byte_length):
-            if index + bits_consumed + 8 > len(bits):
-                break
-            byte_value = self._read_data(bits, index + bits_consumed, 8)
-            decoded_bytes.append(byte_value)
-            bits_consumed += 8
-
-        return (bytes(decoded_bytes), bits_consumed)

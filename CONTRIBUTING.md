@@ -24,21 +24,29 @@ Thank you for your interest in contributing to PyHue2D! We welcome bug reports, 
    cd pyhue2d
    git checkout -b my-feature
    ```
-2. **Set up a virtual environment**:
+2. **Set up environment with uv**:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # or venv\Scripts\activate on Windows
-   pip install --upgrade pip
-   pip install -r requirements-dev.txt
-   pip install -e .
+   uv sync
    ```
 3. **Run tests and checks**:
    ```bash
-   pytest tests/
-   black src/ tests/
-   flake8 src/ tests/
-   mypy src/
-   isort src/ tests/
+   # Using just (recommended)
+   just check
+   just test
+
+   # Or using uv directly
+   uv run pytest
+   uv run ruff check .
+   uv run ruff format --check .
+   uv run ty check
+   ```
+
+4. **Format and fix**:
+   ```bash
+   just format
+   # or
+   uv run ruff check --fix .
+   uv run ruff format .
    ```
 
 **Note:** Encoder and pipeline settings are immutable after initialization. To use different settings, create a new instance.

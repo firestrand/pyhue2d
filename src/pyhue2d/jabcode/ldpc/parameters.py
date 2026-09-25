@@ -1,6 +1,7 @@
 """LDPC parameters configuration for JABCode error correction."""
 
 from dataclasses import dataclass
+from typing import Union
 
 from ..constants import ECC_LEVELS
 
@@ -15,7 +16,7 @@ class LDPCParameters:
 
     wc: int
     wr: int
-    ecc_level: str = "M"
+    ecc_level: Union[int, str] = "M"
 
     def __post_init__(self):
         """Validate parameters after initialization."""
@@ -28,8 +29,9 @@ class LDPCParameters:
             raise ValueError(f"Row weight (wr) must be an integer >= 2: {self.wr}")
 
         # Validate ECC level
-        if self.ecc_level not in ECC_LEVELS:
-            raise ValueError(f"Invalid ECC level: {self.ecc_level}. Must be one of {ECC_LEVELS}")
+        valid_int_levels = range(11)
+        if self.ecc_level not in ECC_LEVELS and self.ecc_level not in valid_int_levels:
+            raise ValueError(f"Invalid ECC level: {self.ecc_level}. Must be one of {ECC_LEVELS} or integers 0-10")
 
     def get_code_rate(self) -> float:
         """Calculate a positive theoretical code rate.
@@ -109,33 +111,52 @@ class LDPCParameters:
         )
 
     @classmethod
-    def for_ecc_level(cls, ecc_level: str) -> "LDPCParameters":
+    def for_ecc_level(cls, ecc_level: Union[int, str]) -> "LDPCParameters":
         """Create standard parameters for given ECC level.
 
         Args:
-            ecc_level: Error correction level ("L", "M", "Q", "H")
+            ecc_level: Error correction level (integer 0-10 or "L", "M", "Q", "H")
 
         Returns:
             LDPCParameters optimized for the ECC level
         """
-        # JABCode reference implementation parameters
         # Based on ecclevel2wcwr[11][2] from encoder.h:
-        # Level 0: {4,9}, Level 1: {3,8}, Level 2: {3,7}, Level 3: {4,9}
-        # Level 4: {3,6}, Level 5: {4,7}, Level 6: {4,6}, Level 7: {3,4}
-        # Level 8: {4,5}, Level 9: {5,6}, Level 10: {6,7}
-
-        ecc_configs = {
-            "L": (4, 9),  # Low error correction (level 0, code rate 0.55)
-            "M": (
-                4,
-                9,
-            ),  # Medium error correction (level 3, code rate 0.55) - JABCode default
-            "Q": (3, 6),  # Quartile error correction (level 4, code rate 0.50)
-            "H": (3, 4),  # High error correction (level 7, code rate 0.25)
+        ecclevel2wcwr: dict[int, tuple[int, int]] = {
+            0: (4, 9),
+            1: (3, 8),
+            2: (3, 7),
+            3: (4, 9),
+            4: (3, 6),
+            5: (4, 7),
+            6: (4, 6),
+            7: (3, 4),
+            8: (4, 5),
+            9: (5, 6),
+            10: (6, 7),
+        }
+        ecc_configs: dict[str, tuple[int, int]] = {
+            "L": (4, 9),
+            "M": (4, 9),
+            "Q": (3, 6),
+            "H": (3, 4),
         }
 
-        if ecc_level not in ecc_configs:
+        if isinstance(ecc_level, int):
+            if ecc_level not in ecclevel2wcwr:
+                raise ValueError(f"Invalid ECC level integer: {ecc_level}")
+            wc, wr = ecclevel2wcwr[ecc_level]
+            return cls(wc, wr, ecc_level)
+        elif isinstance(ecc_level, str):
+            if ecc_level in ecc_configs:
+                wc, wr = ecc_configs[ecc_level]
+                return cls(wc, wr, ecc_level)
+            try:
+                int_level = int(ecc_level)
+                if int_level in ecclevel2wcwr:
+                    wc, wr = ecclevel2wcwr[int_level]
+                    return cls(wc, wr, int_level)
+            except ValueError:
+                pass
             raise ValueError(f"Invalid ECC level: {ecc_level}")
-
-        wc, wr = ecc_configs[ecc_level]
-        return cls(wc, wr, ecc_level)
+        else:
+            raise TypeError(f"Unsupported ecc_level type: {type(ecc_level)}")

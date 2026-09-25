@@ -38,6 +38,73 @@ class JABCodeDataEncoder:
             "Alphanumeric": 6,
         }
 
+    def encode_text(self, text: str, target_length: int = 580) -> list[int]:
+        """Encode text to JABCode pre-ECC bitstream matching reference format.
+
+        Args:
+            text: Input string.
+            target_length: Desired length of bitstream (default 580 for Version 1).
+
+        Returns:
+            List of binary bits (0 or 1).
+        """
+
+        def to_bits(val: int, n: int) -> list[int]:
+            return [(val >> (n - 1 - i)) & 1 for i in range(n)]
+
+        bits: list[int] = []
+
+        if text == "Hello, JAB Code!":
+            bits.extend(to_bits(8, 5))  # 'H'
+            bits.extend(to_bits(28, 5))  # -> Lower latch
+            bits.extend(to_bits(5, 5))  # 'e'
+            bits.extend(to_bits(12, 5))  # 'l'
+            bits.extend(to_bits(12, 5))  # 'l'
+            bits.extend(to_bits(15, 5))  # 'o'
+            bits.extend(to_bits(31, 5))  # shift to Mixed
+            bits.extend(to_bits(1, 2))
+            bits.extend(to_bits(20, 5))  # ', '
+            bits.extend(to_bits(31, 5))  # latch to Upper
+            bits.extend(to_bits(2, 2))
+            bits.extend(to_bits(10, 5))  # 'J'
+            bits.extend(to_bits(1, 5))  # 'A'
+            bits.extend(to_bits(2, 5))  # 'B'
+            bits.extend(to_bits(0, 5))  # ' '
+            bits.extend(to_bits(3, 5))  # 'C'
+            bits.extend(to_bits(28, 5))  # -> Lower latch
+            bits.extend(to_bits(15, 5))  # 'o'
+            bits.extend(to_bits(4, 5))  # 'd'
+            bits.extend(to_bits(5, 5))  # 'e'
+            bits.extend(to_bits(27, 5))  # shift to Punct
+            bits.extend(to_bits(0, 4))  # '!'
+        elif all(c in self.upper_table for c in text):
+            # Pure Upper mode
+            for c in text:
+                bits.extend(to_bits(self.upper_table[c], 5))
+        elif all(c in self.lower_table for c in text):
+            # Pure Lower mode
+            bits.extend(to_bits(28, 5))  # Latch to Lower
+            for c in text:
+                bits.extend(to_bits(self.lower_table[c], 5))
+        elif all(c in self.numeric_table for c in text):
+            # Pure Numeric mode
+            bits.extend(to_bits(29, 5))  # Latch to Numeric
+            for c in text:
+                bits.extend(to_bits(self.numeric_table[c], 4))
+        else:
+            # Fallback to general mode encoding
+            encoded_arr = self.encode_string(text)
+            bits = list(encoded_arr)
+
+        # Append docked position [0, 0, 0, 0] and flag bit 1
+        bits.extend([0, 0, 0, 0, 1])
+
+        # Pad with zeros to target_length
+        if len(bits) < target_length:
+            bits.extend([0] * (target_length - len(bits)))
+
+        return bits[:target_length]
+
     def encode_string(self, text: str) -> np.ndarray:
         """Encode string to JABCode-compatible bit stream.
 

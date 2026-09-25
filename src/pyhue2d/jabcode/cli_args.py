@@ -25,11 +25,11 @@ class EncodeArgs:
 
     # Optional encoding parameters
     palette: int = 8
-    ecc_level: str = "M"
+    ecc_level: Union[int, str] = 3
     version: Union[int, str] = "auto"
-    quiet_zone: int = 2
+    quiet_zone: int = 4
     mask_pattern: int = 7
-    module_size: int = 1
+    module_size: int = 12
 
     # Optional behavior settings
     optimize: bool = True
@@ -124,10 +124,33 @@ class EncodeArgs:
 
     def _validate_ecc_level(self):
         """Validate error correction level."""
-        valid_levels = ["L", "M", "Q", "H"]
-        if self.ecc_level not in valid_levels:
+        if isinstance(self.ecc_level, int):
+            if not (0 <= self.ecc_level <= 10):
+                raise validation_error(
+                    f"Invalid ECC level integer: {self.ecc_level}. Must be between 0 and 10",
+                    field="ecc_level",
+                    value=self.ecc_level,
+                )
+        elif isinstance(self.ecc_level, str):
+            if self.ecc_level.isdigit():
+                self.ecc_level = int(self.ecc_level)
+                if not (0 <= self.ecc_level <= 10):
+                    raise validation_error(
+                        f"Invalid ECC level integer: {self.ecc_level}. Must be between 0 and 10",
+                        field="ecc_level",
+                        value=self.ecc_level,
+                    )
+            elif self.ecc_level in ["L", "M", "Q", "H"]:
+                pass
+            else:
+                raise validation_error(
+                    f"Invalid ECC level: {self.ecc_level}. Must be integer 0-10 or one of ['L', 'M', 'Q', 'H']",
+                    field="ecc_level",
+                    value=self.ecc_level,
+                )
+        else:
             raise validation_error(
-                f"Invalid ECC level: {self.ecc_level}. Must be one of {valid_levels}",
+                f"Invalid ECC level type: {type(self.ecc_level)}",
                 field="ecc_level",
                 value=self.ecc_level,
             )
@@ -224,8 +247,11 @@ class EncodeArgs:
             Dictionary suitable for core.encode() function
         """
         return {
-            "colors": self.palette,  # Core API expects 'colors' not 'color_count'
+            "colors": self.palette,
             "ecc_level": self.ecc_level,
+            "quiet_zone": self.quiet_zone,
+            "module_size": self.module_size,
+            "mask_pattern": self.mask_pattern,
         }
 
 
@@ -291,8 +317,7 @@ class DecodeArgs:
         valid_extensions = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif", ".webp"}
         if self.input_path.suffix.lower() not in valid_extensions:
             raise validation_error(
-                f"Unsupported image format: {self.input_path.suffix}. "
-                f"Supported formats: {', '.join(valid_extensions)}",
+                f"Unsupported image format: {self.input_path.suffix}. Supported formats: {', '.join(valid_extensions)}",
                 field="input_path",
                 value=str(self.input_path),
             )
@@ -337,7 +362,7 @@ class DecodeArgs:
         valid_methods = ["scanline", "contour", "hybrid"]
         if self.detection_method not in valid_methods:
             raise validation_error(
-                f"Invalid detection method: {self.detection_method}. " f"Must be one of {valid_methods}",
+                f"Invalid detection method: {self.detection_method}. Must be one of {valid_methods}",
                 field="detection_method",
                 value=self.detection_method,
             )

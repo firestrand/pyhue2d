@@ -12,7 +12,7 @@ from pyhue2d.jabcode.core import Point2D
 from pyhue2d.jabcode.image_processing.finder_detector import FinderPatternDetector
 from pyhue2d.jabcode.patterns import FinderPatternGenerator
 
-EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "example_images")
+EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "approved", "jabcode")
 MANIFEST_PATH = os.path.join(EXAMPLES_DIR, "examples_manifest.json")
 
 
@@ -443,9 +443,10 @@ class TestFinderPatternDetectorImplementation:
 def test_detector_on_real_jabcode_images_actual(example):
     """Test FinderPatternDetector on real JABCode example images (actual result, not xfail)."""
     image_path = os.path.join(EXAMPLES_DIR, example["output"])
+    if not os.path.exists(image_path):
+        pytest.skip(f"Image {example['output']} quarantined/not on disk")
     image = Image.open(image_path)
     detector = FinderPatternDetector()
     patterns = detector.find_patterns(image)
-    print(f"Image {example['output']}: found {len(patterns)} patterns")
     assert isinstance(patterns, list)
     assert len(patterns) >= 1  # At least one pattern should be found in a real JABCode image

@@ -1,0 +1,7 @@
+{
+	"success":	false,
+	"signal":	"Bus error: 10",
+	"signal_number":	10,
+	"backtrace":	["0   jabcodeWriter                       0x0000000104b39090 write_signal_log + 152", "1   jabcodeWriter                       0x0000000104b39228 crash_handler + 136", "2   libsystem_platform.dylib            0x00000001881dc624 _sigtramp + 56", "3   jabcodeWriter                       0x0000000104b38d40 write_debug_log + 1584", "4   jabcodeWriter                       0x0000000104b39f2c main + 864", "5   dyld                                0x0000000187e02b98 start + 6076"],
+	"cli_args":	["src/jabcodeWriter/bin/jabcodeWriter", "--input-file", "output_examples/grid2x3_text.txt", "--output", "output_examples/test_block2.png", "--symbol-number", "2", "--symbol-position", "0", "1", "--symbol-version", "10", "10", "10", "10"]
+}

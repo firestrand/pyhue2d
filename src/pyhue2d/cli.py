@@ -79,7 +79,7 @@ Examples:
     parser.add_argument("--quiet", "-q", action="store_true", help="Suppress non-error output")
     parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
 
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(dest="command", required=True, help="Available commands")
 
     # Encode command
     encode_parser = subparsers.add_parser(
@@ -112,17 +112,16 @@ Examples:
     encode_parser.add_argument(
         "--ecc-level",
         "-e",
-        default="M",
-        choices=["L", "M", "Q", "H"],
-        help="Error correction level (default: M)",
+        default=3,
+        help="Error correction level (default: 3)",
     )
     encode_parser.add_argument("--version", type=int, metavar="N", help="Symbol version (1-32, default: auto)")
     encode_parser.add_argument(
         "--quiet-zone",
         type=int,
-        default=2,
+        default=4,
         metavar="N",
-        help="Quiet zone size in modules (default: 2)",
+        help="Quiet zone size in modules (default: 4)",
     )
     encode_parser.add_argument(
         "--mask-pattern",
@@ -134,9 +133,9 @@ Examples:
     encode_parser.add_argument(
         "--module-size",
         type=int,
-        default=1,
+        default=12,
         metavar="N",
-        help="Module size in pixels (default: 1)",
+        help="Module size in pixels (default: 12)",
     )
     encode_parser.add_argument("--force", "-f", action="store_true", help="Overwrite output file if it exists")
     encode_parser.add_argument(
@@ -213,6 +212,14 @@ Examples:
     convert_parser.add_argument("--optimize", action="store_true", default=True, help="Enable optimization")
     convert_parser.add_argument("--force", "-f", action="store_true", help="Overwrite output file if it exists")
 
+    # Inspect command
+    inspect_parser = subparsers.add_parser(
+        "inspect",
+        help="Inspect JABCode image structure and bitstream",
+        description="Inspect JABCode image and print matrix dimensions and pre-ECC bitstream hex",
+    )
+    inspect_parser.add_argument("--input", "-i", required=True, metavar="IMAGE", help="Input image file")
+
     return parser
 
 
@@ -241,6 +248,20 @@ def command_encode(args: argparse.Namespace) -> int:
             verbose=args.verbose,
             encoding_mode=args.encoding_mode,
         )
+
+        # Reject unsupported CLI options explicitly
+        if encode_args.version not in ("auto", 1):
+            raise JABCodeValidationError(
+                f"Unsupported symbol version: {encode_args.version}. Only version 1 is currently supported."
+            )
+        if encode_args.mask_pattern != 7:
+            raise JABCodeValidationError(
+                f"Unsupported mask pattern: {encode_args.mask_pattern}. Only mask pattern 7 is currently supported."
+            )
+        if encode_args.encoding_mode is not None:
+            raise JABCodeValidationError(
+                f"Unsupported encoding mode: {encode_args.encoding_mode}. Explicit encoding mode is not supported."
+            )
 
         # Read input data
         with open(encode_args.input_source, "rb") as fh:
@@ -296,7 +317,8 @@ def command_decode(args: argparse.Namespace) -> int:
         )
 
         # Decode data
-        decoded_data = decode(str(decode_args.input_path))
+        decoded_result = decode(str(decode_args.input_path), error_correction=decode_args.error_correction)
+        decoded_data = decoded_result.payload
 
         if not args.quiet:
             print(f"✅ Successfully decoded '{decode_args.input_path}'")
@@ -439,6 +461,31 @@ def command_convert(args) -> int:
         return 1
 
 
+def command_inspect(args: argparse.Namespace) -> int:
+    """Handle inspect command.
+
+    Args:
+        args: Parsed command-line arguments
+
+    Returns:
+        Exit code (0 for success, non-zero for error)
+    """
+    try:
+        from .core import inspect_symbol
+
+        result = inspect_symbol(args.input)
+        print(f"Matrix size: {result.matrix_size[0]}×{result.matrix_size[1]}")
+        print(f"Encoded data hex: {result.encoded_data_hex}")
+        return 0
+    except Exception as e:
+        print(f"❌ Inspect failed: {e}", file=sys.stderr)
+        if getattr(args, "verbose", False):
+            import traceback
+
+            traceback.print_exc()
+        return 1
+
+
 def main(argv=None) -> None:
     """Enhanced main function with comprehensive error handling.
 
@@ -462,13 +509,18 @@ def main(argv=None) -> None:
         "decode": command_decode,
         "validate": command_validate,
         "convert": command_convert,
+        "inspect": command_inspect,
     }
 
     if args.command in command_map:
         exit_code = command_map[args.command](args)
+        if argv is not None:
+            return exit_code
         sys.exit(exit_code)
     else:
         parser.print_help()
+        if argv is not None:
+            return 0
         sys.exit(0)
 
 

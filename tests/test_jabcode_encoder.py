@@ -11,7 +11,7 @@ from pyhue2d.jabcode.color_palette import ColorPalette
 from pyhue2d.jabcode.core import Bitmap, EncodedData
 from pyhue2d.jabcode.encoder import JABCodeEncoder
 
-EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "example_images")
+EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "approved", "jabcode")
 MANIFEST_PATH = os.path.join(EXAMPLES_DIR, "examples_manifest.json")
 
 with open(MANIFEST_PATH) as f:

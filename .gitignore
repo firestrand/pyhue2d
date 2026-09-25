@@ -204,3 +204,16 @@ analysis_*.png
 debug_*.png
 test_*.png
 *.tmp
+
+# Virtual environment and local tools
+.venv/
+.serena/
+
+# Raw data and secrets
+raw_data/
+*.pem
+*.key
+
+# Ensure fixtures are tracked
+!tests/fixtures/
+!tests/fixtures/**

@@ -125,7 +125,7 @@ class BitmapRenderer:
         """
         # Validate that matrix matches symbol dimensions
         if symbol_matrix.shape != symbol.matrix_size:
-            raise ValueError(f"Matrix shape {symbol_matrix.shape} doesn't match " f"symbol size {symbol.matrix_size}")
+            raise ValueError(f"Matrix shape {symbol_matrix.shape} doesn't match symbol size {symbol.matrix_size}")
 
         # Update color palette to match symbol
         if symbol.color_count != self.color_palette.color_count:

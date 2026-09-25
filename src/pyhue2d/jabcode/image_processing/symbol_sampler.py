@@ -258,3 +258,47 @@ class SymbolSampler:
             "boundary_handling": self.settings["boundary_handling"],
             "background_value": self.settings["background_value"],
         }
+
+    def sample_symbol_matrix(
+        self,
+        image: Image.Image,
+        palette: Optional[List[Any]] = None,
+        symbol_size: Tuple[int, int] = (21, 21),
+        module_size: Optional[int] = None,
+    ) -> List[List[int]]:
+        """Sample the grid of module color indices from an image.
+
+        Args:
+            image: Source PIL Image.
+            palette: Color palette as a list of RGB triplets/lists. Defaults to DEFAULT_8_COLOR_PALETTE.
+            symbol_size: (width, height) in modules. Defaults to (21, 21).
+            module_size: Module size in pixels. If None, inferred from image width // symbol_width.
+
+        Returns:
+            2D list of color index integers of shape (height, width).
+        """
+        if palette is None:
+            from ..constants import DEFAULT_8_COLOR_PALETTE
+
+            palette = DEFAULT_8_COLOR_PALETTE
+
+        rgb_image = image.convert("RGB")
+        width_modules, height_modules = symbol_size
+        mod_size = module_size if module_size is not None else (rgb_image.width // width_modules)
+
+        matrix: List[List[int]] = []
+        for r in range(height_modules):
+            row: List[int] = []
+            for c in range(width_modules):
+                x = c * mod_size + mod_size // 2
+                y = r * mod_size + mod_size // 2
+                px = rgb_image.getpixel((x, y))
+                # Find nearest palette entry
+                best_idx = min(
+                    range(len(palette)),
+                    key=lambda idx: sum((a - b) ** 2 for a, b in zip(px, palette[idx])),
+                )
+                row.append(best_idx)
+            matrix.append(row)
+
+        return matrix

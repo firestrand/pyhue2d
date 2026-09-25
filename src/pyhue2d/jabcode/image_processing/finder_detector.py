@@ -5,6 +5,7 @@ finder patterns in images using template matching, contour detection, and
 pattern validation algorithms.
 """
 
+import logging
 import math
 import time
 import warnings
@@ -19,6 +20,8 @@ from skimage import feature, measure, morphology
 from ..constants import FinderPatternType
 from ..core import Point2D
 from ..patterns import FinderPatternGenerator
+
+logger = logging.getLogger(__name__)
 
 
 class FinderPatternDetector:
@@ -492,7 +495,7 @@ class FinderPatternDetector:
         if is_large_image:
             # For large images, use a coarser scan to improve performance
             skip_factor = self.settings["large_image_skip_factor"]
-            print(f"Large image detected ({width}x{height}), using skip factor {skip_factor}")
+            logger.debug("Large image detected (%dx%d), using skip factor %d", width, height, skip_factor)
         else:
             skip_factor = 1
         # Step 1: Quantize to palette
@@ -713,7 +716,6 @@ class FinderPatternDetector:
                             confidence >= 0.5  # Reasonable confidence threshold
                             and self.settings["min_pattern_size"] <= pattern_size <= self.settings["max_pattern_size"]
                         ):
-
                             pattern = {
                                 "center": pt,
                                 "lengths": lengths,
@@ -738,7 +740,7 @@ class FinderPatternDetector:
             # Sort by confidence and keep the best patterns
             patterns.sort(key=lambda p: p.get("confidence", 0), reverse=True)
             patterns = patterns[: self.settings["max_patterns_per_symbol"]]
-            print(f"Limited to {len(patterns)} best patterns for large image")
+            logger.debug("Limited to %d best patterns for large image", len(patterns))
 
         # Remove overlapping patterns and apply quality-based filtering
         patterns = self._remove_overlapping_patterns(patterns)

@@ -421,12 +421,12 @@ class TestRoundTripStatistics:
                 final_decoder_stats = decoder.get_detection_stats()
 
                 # Verify statistics were updated
-                assert (
-                    final_decoder_stats["total_decoded"] > initial_decoder_stats["total_decoded"]
-                ), f"total_decoded should increase: {initial_decoder_stats} -> {final_decoder_stats}"
-                assert (
-                    final_decoder_stats["total_detection_time"] >= initial_decoder_stats["total_detection_time"]
-                ), f"detection_time should increase: {initial_decoder_stats} -> {final_decoder_stats}"
+                assert final_decoder_stats["total_decoded"] > initial_decoder_stats["total_decoded"], (
+                    f"total_decoded should increase: {initial_decoder_stats} -> {final_decoder_stats}"
+                )
+                assert final_decoder_stats["total_detection_time"] >= initial_decoder_stats["total_detection_time"], (
+                    f"detection_time should increase: {initial_decoder_stats} -> {final_decoder_stats}"
+                )
 
                 print(f"Decoder stats: {final_decoder_stats}")
 
@@ -493,9 +493,9 @@ class TestRoundTripStatistics:
 
         for i, result in enumerate(results):
             if result["success"]:
-                print(f"  {i+1}: '{result['original']}' -> {result['decoded_bytes']} bytes")
+                print(f"  {i + 1}: '{result['original']}' -> {result['decoded_bytes']} bytes")
             else:
-                print(f"  {i+1}: '{result['original']}' -> ERROR: {result['error']}")
+                print(f"  {i + 1}: '{result['original']}' -> ERROR: {result['error']}")
 
         # For now, consider any successful round-trip a win
         if successful_count > 0:

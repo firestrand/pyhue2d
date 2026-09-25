@@ -513,17 +513,100 @@ class ModuleDataExtractor:
         elif mask_pattern == 2:
             return y % color_count
         elif mask_pattern == 3:
-            return (x + y) % 3 % color_count
-        elif mask_pattern == 4:
             return (x // 2 + y // 3) % color_count
+        elif mask_pattern == 4:
+            return (x // 3 + y // 2) % color_count
         elif mask_pattern == 5:
-            return ((x * y) % 2 + (x * y) % 3) % color_count
+            return ((x + y) // 2 + (x + y) // 3) % color_count
         elif mask_pattern == 6:
             return ((x * x * y) % 7 + (2 * x * x + 2 * y) % 19) % color_count
         elif mask_pattern == 7:
-            return ((x + y) % 7 + (x * y) % 13) % color_count
+            return ((x * y * y) % 5 + (2 * x + y * y) % 13) % color_count
         else:
             return 0
+
+    def extract_demasked_bits(
+        self,
+        symbol_matrix: List[List[int]],
+        mask_pattern: int = 7,
+        color_count: int = 8,
+    ) -> List[int]:
+        """Extract demasked bitstream from a symbol matrix.
+
+        Args:
+            symbol_matrix: 2D list of color index integers (height, width).
+            mask_pattern: Mask pattern index (0-7).
+            color_count: Number of colors (e.g. 8).
+
+        Returns:
+            List of binary ints (0 or 1) representing the demasked codeword.
+        """
+        # Master symbol Version 1 (21x21) data map: 1 = data, 0 = non-data
+        v1_data_map = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+            [1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1],
+            [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1],
+            [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+            [1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        ]
+
+        height = len(symbol_matrix)
+        width = len(symbol_matrix[0]) if height > 0 else 0
+        bits_per_mod = int(math.log2(color_count)) if color_count > 1 else 1
+
+        color_indices: List[int] = []
+        # Column-major extraction
+        for x in range(width):
+            for y in range(height):
+                if v1_data_map[y][x] == 1:
+                    raw_val = symbol_matrix[y][x]
+                    mask_val = self._calculate_mask_value(x, y, mask_pattern, color_count)
+                    demasked_val = raw_val ^ mask_val
+                    color_indices.append(demasked_val)
+
+        bits: List[int] = []
+        for val in color_indices:
+            for b in range(bits_per_mod - 1, -1, -1):
+                bits.append((val >> b) & 1)
+
+        # For Version 1 / wr = 9: Pg = 1044 bits
+        target_len = (len(bits) // 9) * 9
+        return bits[:target_len]
+
+    def extract_demasked_codeword(
+        self,
+        symbol_matrix: List[List[int]],
+        mask_pattern: int = 7,
+        color_count: int = 8,
+    ) -> str:
+        """Extract demasked codeword as hex string matching sidecar ecc_data_hex.
+
+        Args:
+            symbol_matrix: 2D list of color index integers (height, width).
+            mask_pattern: Mask pattern index (0-7).
+            color_count: Number of colors (e.g. 8).
+
+        Returns:
+            Hex string where each bit b is serialized as 2 hex digits ('00' or '01').
+        """
+        bits = self.extract_demasked_bits(symbol_matrix, mask_pattern, color_count)
+        return "".join(f"{b:02x}" for b in bits)
 
     def get_extraction_stats(self) -> Dict[str, Any]:
         """Get module extraction statistics.

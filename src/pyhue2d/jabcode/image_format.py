@@ -113,7 +113,7 @@ class ImageFormatDetector:
         if detected_format not in self.SUPPORTED_FORMATS:
             supported = list(self.SUPPORTED_FORMATS.keys())
             raise JABCodeFormatError(
-                f"Unsupported image format: {detected_format}. " f"Supported formats: {', '.join(supported)}",
+                f"Unsupported image format: {detected_format}. Supported formats: {', '.join(supported)}",
                 error_code="UNSUPPORTED_FORMAT",
                 context={
                     "detected_format": detected_format,

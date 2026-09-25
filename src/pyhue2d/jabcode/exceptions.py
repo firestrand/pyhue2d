@@ -7,7 +7,7 @@ providing specific error types for different failure modes.
 from typing import Any, Dict, Optional
 
 
-class JABCodeError(Exception):
+class JABCodeError(ValueError):
     """Base exception for all JABCode-related errors.
 
     This is the root exception class that all other JABCode exceptions inherit from.

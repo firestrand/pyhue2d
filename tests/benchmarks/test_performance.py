@@ -424,7 +424,7 @@ class TestComponentPerformance(PerformanceBenchmark):
         """Test finder pattern detection performance."""
         try:
             # Load a reference image if available
-            ref_image_path = Path("tests/example_images/example1.png")
+            ref_image_path = Path("tests/fixtures/approved/jabcode/example1.png")
             if not ref_image_path.exists():
                 pytest.skip("Reference image not available")
 
@@ -453,7 +453,7 @@ class TestComponentPerformance(PerformanceBenchmark):
                 avg_time = statistics.mean([r.execution_time for r in successful_results])
                 print(f"\nPattern Detection Performance:")
                 print(f"Average time: {avg_time:.3f}s")
-                print(f"Success rate: {len(successful_results)/repetitions*100:.1f}%")
+                print(f"Success rate: {len(successful_results) / repetitions * 100:.1f}%")
 
         except Exception as e:
             pytest.skip(f"Pattern detection performance test failed: {e}")
@@ -499,7 +499,7 @@ class TestComponentPerformance(PerformanceBenchmark):
             avg_time = statistics.mean([r.execution_time for r in successful_results])
             print(f"\nEncoding Pipeline Performance:")
             print(f"Average time: {avg_time:.3f}s")
-            print(f"Success rate: {len(successful_results)/repetitions*100:.1f}%")
+            print(f"Success rate: {len(successful_results) / repetitions * 100:.1f}%")
 
 
 class TestMemoryPerformance:
@@ -560,9 +560,9 @@ def print_benchmark_summary(benchmark: PerformanceBenchmark):
     """Print comprehensive benchmark summary."""
     stats = benchmark.get_summary_stats()
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"BENCHMARK SUMMARY")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
     print(f"Total Operations: {stats.get('total_runs', 0)}")
     print(f"Successful Operations: {stats.get('successful_runs', 0)}")
     print(f"Success Rate: {stats.get('success_rate', 0):.1f}%")

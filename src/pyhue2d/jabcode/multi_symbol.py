@@ -94,7 +94,7 @@ class MultiSymbolCascade:
             estimated_symbols = self.estimate_symbol_count(data)
             if estimated_symbols > self.max_symbols:
                 raise ValueError(
-                    f"Data too large: estimated {estimated_symbols} symbols needed, " f"maximum is {self.max_symbols}"
+                    f"Data too large: estimated {estimated_symbols} symbols needed, maximum is {self.max_symbols}"
                 )
 
             # Split data into segments

@@ -4,6 +4,7 @@ This module provides the DataProcessor class which handles the initial processin
 of input data, including encoding mode selection, data chunking, and optimization.
 """
 
+import logging
 import time
 from typing import Any, Dict, List, Optional, Union
 
@@ -20,6 +21,8 @@ from ..encoding_modes import (
     PunctuationMode,
     UppercaseMode,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class DataProcessor:
@@ -176,10 +179,12 @@ class DataProcessor:
             combined_encoded = b""
 
         # Log processed data and encoding mode for validation
-        print(
-            f"JABCode-encoded data size: {len(combined_encoded)} bytes from {len(combined_bits) if 'combined_bits' in locals() else 0} bits"
+        logger.debug(
+            "JABCode-encoded data size: %d bytes from %d bits",
+            len(combined_encoded),
+            len(combined_bits) if "combined_bits" in locals() else 0,
         )
-        print(f"Selected encoding mode: JABCode-compatible")
+        logger.debug("Selected encoding mode: JABCode-compatible")
 
         # Calculate processing time
         processing_time = time.time() - start_time

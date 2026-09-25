@@ -53,11 +53,11 @@ These guidelines ensure code quality, maintainability, and extensibility for the
 - Use lowercase_with_underscores for filenames and functions; CamelCase for classes.
 
 ## 9. Code Quality
-- Format code with `black`.
-- Lint with `flake8`.
-- Type-check with `mypy`.
-- Sort imports with `isort`.
-- Run all checks before submitting a PR.
+- Format code and sort imports with `ruff format`.
+- Lint with `ruff check`.
+- Type-check with `ty check`.
+- Manage environments, builds, and dependencies with `uv`.
+- Run all checks with `just check` (or `uv run ruff check . && uv run ruff format --check . && uv run ty check`) before submitting a PR.
 
 ## 10. Commits & Pull Requests
 - Write clear, descriptive commit messages.
