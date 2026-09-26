@@ -58,13 +58,12 @@ assert decoded.payload == payload
 assert decoded.symbol_count == 4
 ```
 
-The generalized encoder supports eight colors, Versions 1–32, and 1–61 symbols.
-It rejects payloads that exceed the requested capacity. Omitting `version` with
-one symbol preserves the original Version-1 encoder; use `version=1` to select
-the generalized binary encoder at that size. Raster decoding supports padding,
-scaling, and quarter-turn rotation. General photographed multi-symbol detection
-is not supported; the approved perspective-scan example uses the existing
-single-symbol path.
+The generalized encoder supports 4, 8, 16, 32, and 64 colors, Versions 1–32, and
+1–61 symbols. It rejects payloads that exceed the requested capacity. Omitting
+`version` with one symbol preserves the original Version-1 encoder; use `version=1`
+to select the generalized binary encoder at that size. Raster decoding supports
+padding, scaling, quarter-turn rotation, and perspective unwarping for camera frames
+across docked multi-symbol topologies.
 
 ---
 
@@ -83,9 +82,11 @@ pyhue2d inspect --input message.png
 
 ---
 
-## 📚 Documentation
+## 📚 Documentation & Examples
 
-Comprehensive docs live in the [docs](docs/) directory, including an API reference, design rationale, and a guide to adding new colour symbologies.
+Comprehensive docs live in the [docs](docs/) directory, including an [Examples Guide](docs/examples.md), design rationale, and a guide to adding new colour symbologies.
+
+Executable example scripts and generated sample assets are in [examples/](examples/).
 
 ---
 
@@ -110,7 +111,7 @@ The fact ledger is [docs/fact-ledger.md](docs/fact-ledger.md).
 * [x] Approved four-color capture decoding
 * [x] Cross-check against the official `jabcode` binary
 * [x] Approved simulated single-symbol perspective scan
-* [ ] General photographed multi-symbol detection
+* [x] Photographed multi-symbol perspective unwarping
 * [ ] HiQ and color QR symbologies
 * [ ] WebAssembly build
 

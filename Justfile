@@ -38,6 +38,10 @@ test-cov:
     uv run pytest -v --cov=pyhue2d --cov-branch
 
 
+# Run all examples and generate repository sample assets
+examples:
+    uv run python examples/generate_all.py
+
 # Build package distributions using uv
 build:
     uv build

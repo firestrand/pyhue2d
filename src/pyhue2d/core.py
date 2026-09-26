@@ -22,6 +22,7 @@ def encode_symbol(
     mask_pattern: int = 7,
     version: int | None = None,
     symbol_count: int = 1,
+    columns: int | None = None,
 ) -> EncodeResult:
     """Encode *data* into a JABCode symbol matrix.
 
@@ -32,6 +33,7 @@ def encode_symbol(
         mask_pattern: Mask pattern index (default 7).
         version: Explicit side version (1–32); omission preserves legacy Version 1 output.
         symbol_count: Number of docked symbols (1–61).
+        columns: Number of grid columns for docked multi-symbol topologies.
 
     Returns:
         Structured EncodeResult with .matrix (2D list of color indices).
@@ -63,7 +65,9 @@ def encode_symbol(
         raise ValueError("Symbol version must be an integer between 1 and 32")
 
     if symbol_count != 1:
-        matrix = build_multisymbol_matrix(data, actual_version, colors, ecc_int, mask_pattern, symbol_count)
+        matrix = build_multisymbol_matrix(
+            data, actual_version, colors, ecc_int, mask_pattern, symbol_count, columns=columns
+        )
     elif (
         version is None
         and actual_version == 1
@@ -97,6 +101,7 @@ def encode(
     mask_pattern: int = 7,
     version: int | None = None,
     symbol_count: int = 1,
+    columns: int | None = None,
 ) -> Image.Image:
     """Encode *data* to a colour 2‑D symbol such as JAB Code.
 
@@ -109,12 +114,19 @@ def encode(
         mask_pattern: Mask pattern index (default 7).
         version: Explicit side version (1–32); omission preserves legacy Version 1 output.
         symbol_count: Number of docked symbols (1–61).
+        columns: Number of grid columns for docked multi-symbol topologies.
 
     Returns:
         PIL Image containing the encoded JABCode symbol.
     """
     res = encode_symbol(
-        data, colors=colors, ecc_level=ecc_level, mask_pattern=mask_pattern, version=version, symbol_count=symbol_count
+        data,
+        colors=colors,
+        ecc_level=ecc_level,
+        mask_pattern=mask_pattern,
+        version=version,
+        symbol_count=symbol_count,
+        columns=columns,
     )
     matrix = res.matrix
     palette_arr = np.array(ColorPalette(colors).to_rgb_array(), dtype=np.uint8)

@@ -81,6 +81,7 @@ ignore = [
 "src/pyhue2d/cli.py" = ["T201"]
 "tests/**" = ["T201"]
 "scripts/**" = ["T201"]
+"examples/**" = ["T201"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["pyhue2d"]
