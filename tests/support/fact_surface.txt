@@ -16,7 +16,14 @@ tests/facts/test_varied_parameters.py
 tests/facts/test_reference_cli.py
 tests/facts/test_photo_scan.py
 tests/facts/test_decode_logs.py
+tests/facts/test_alignment_grid_sampling.py
+tests/facts/test_multisymbol_docking.py
+tests/facts/test_multisymbol_interleaving.py
+tests/facts/test_general_multisymbol_decode.py
+tests/facts/test_general_encode.py
+tests/support/test_dynamic_ldpc.py
 tests/support/log_capture.py
 tests/support/sidecar.py
 tests/support/fixture_digest.py
 tests/fixtures/approved/
+

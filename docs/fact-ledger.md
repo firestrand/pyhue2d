@@ -45,6 +45,12 @@
 | JAB.METADATA.VARIED_CAPTURE.v1 | Given an approved capture whose color count or ECC integer differs from `example1`, when decoded, then the reported color count and ECC integer equal that capture's sidecar | The captures acquired in V13, not the current 8-color ECC-3/0 set | Compatibility | LOCAL-AC-16 | product | Verified | EV-17 |
 | JAB.REFERENCE.ACCEPTS_ENCODE.v1 | Given the `example1` plaintext and sidecar parameters, when this library encodes an image and the official decoder reads it, then the official decoder returns the same plaintext | Official CLI available, `example1` parameters only | Compatibility | LOCAL-AC-17 | product | Verified | EV-18 |
 | JAB.SCAN.PALETTE_CALIBRATION.v1 | Given an approved photograph of a printed symbol and its plaintext sidecar, when decoded, then the payload equals that plaintext | The photographs acquired in V17 only | Compatibility | LOCAL-AC-18 | product | Verified | EV-19 |
+| JAB.LDPC.DYNAMIC_CODEBOOK.v1 | Given PRNG seeds and standard LDPC parameters, when Gallager matrices G and H are generated, then PRNG sequence matches C reference lcg64_temper bit-for-bit, syndrome H·c = 0 for valid reference codewords, and per-matrix generation is < 50ms | Version 1..32 capacities | Domain Algorithm | LOCAL-AC-10 | platform | Verified | EV-22 |
+| JAB.SAMPLING.ISO_TABLE5_GRID.v1 | Given symbol version 1..32, when alignment pattern coordinates are queried, then positions match ISO/IEC 23634 Table 5 and mesh sampling recovers 100% of modules without perspective drift | Version 1..32 symbols | Geometry / Domain Sampling | LOCAL-AC-10 | platform | Verified | EV-23 |
+| JAB.TOPOLOGY.DOCKING_TRAVERSAL.v1 | Given multi-symbol JAB codes with up to 61 docked symbols in 2D topologies, when docked slave search executes, then symbols are detected and traversed in breadth-first docking order | 1..61 docked symbols | Multi-Symbol Topology | LOCAL-AC-09 | product | Verified | EV-24 |
+| JAB.CHANNEL.INTER_SYMBOL_ASSEMBLY.v1 | Given multi-symbol captures, when demasking and de-interleaving are executed per-symbol, then docking trailers are cleanly stripped, net bits joined in traversal order, and interleave is mutual inverse | Multi-symbol payloads | Domain Channel | LOCAL-AC-09 | product | Verified | EV-25 |
+| JAB.CODEC.GENERAL_MULTISYMBOL.v1 | Given arbitrary versions 1..32 and multi-symbol groups up to 61 symbols, when encoded or decoded, then payloads are recovered from channel data without static signatures or lorem lookups | Arbitrary versions and multi-symbol topologies | Public API / Codec | LOCAL-AC-09, LOCAL-AC-10 | product | Verified | EV-26 |
+
 
 ---
 
@@ -109,3 +115,17 @@
 
 ### 5. How were oracles verified?
 - Module matrices and hex bitstreams were loaded directly from approved sidecars (`example1.png.json` and 7 mode captures), with SHA-256 integrity verified against `SHA256SUMS`.
+
+## Fact Sufficiency Review — Phases V21–V25 (Generalized Codec & Multi-Symbol)
+
+### 1. What do these tests prove?
+- **EV-22 (`test_dynamic_ldpc.py`)**: Confirms PRNG draws match reference C outputs for 10,000 draws. Parity check matrices match independent C oracle hashes for all capacities, and syndrome validation $H \cdot c = 0$ holds. Individual cold-matrix generation across all 37 distinct default layout capacities is < 50 ms (worst sample 48.325 ms).
+- **EV-23 (`test_alignment_grid_sampling.py`)**: Confirms ISO/IEC 23634 Table 5 coordinate accuracy across all 32 versions and verifies 100% module recovery on synthetic Version 10 and 32 images without perspective drift.
+- **EV-24 (`test_multisymbol_docking.py`)**: Confirms secondary finder/alignment identification and breadth-first docking traversal for 2- through 9-symbol docked layouts without hardcoded coordinate bounds.
+- **EV-25 (`test_multisymbol_interleaving.py`)**: Confirms independent per-symbol de-interleaving and LDPC decoding, trailer stripping, net-bit concatenation, and mutual inverse property ($\text{deinterleave}(\text{interleave}(x)) == x$).
+- **EV-26 (`test_general_multisymbol_decode.py`, `test_general_encode.py`)**: Proves arbitrary unseen non-lorem multi-symbol images decode to exact plaintexts without static signatures, and round-trip encode/decode succeeds across explicit versions 1–32 and up to 61 docked symbols.
+
+### 2. Negative Space & Stated Holes
+- **4/16/32/64-Color Generalized Encoding**: Generalized encoding currently supports 8-color binary encoding. Reference decoding for 4 colors remains supported; generalized encoding for arbitrary palettes is scheduled for a future phase.
+- **Photographed Multi-Symbol Layouts**: Raster topology detection locates rendered and clean multi-symbol docked topologies; arbitrary photographed perspective-distorted multi-symbol camera scans remain scoped to future work.
+
