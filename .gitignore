@@ -5,6 +5,10 @@ __pycache__/
 
 # C extensions
 *.so
+a.out
+
+# Local editor and agent state
+.codex/
 
 # Distribution / packaging
 .Python

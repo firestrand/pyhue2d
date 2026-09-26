@@ -8,11 +8,13 @@ Verifies:
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
 import cv2
 import numpy as np
+import pytest
 
 from pyhue2d.jabcode.image_processing.alignment_sampler import (
     JAB_AP_NUM,
@@ -26,6 +28,9 @@ from pyhue2d.jabcode.image_processing.alignment_sampler import (
 
 def test_table5_coordinates_all_32_versions():
     """Verify Table 5 coordinates and pattern counts for all 32 side versions."""
+    # SHA-256 of the complete C encoder.h jab_ap_pos table as big-endian uint32.
+    digest = hashlib.sha256(np.asarray(JAB_AP_POS, dtype=">u4").tobytes()).hexdigest()
+    assert digest == "e82f86f77508a06f4393b139cdff55ef025c68d26e6b3eadf748ef5c376bd271"
     assert len(JAB_AP_POS) == 32
     assert len(JAB_AP_NUM) == 32
 
@@ -80,6 +85,7 @@ def test_sample_symbol_mesh_version_10_accuracy():
     sidecar_path = Path("tests/fixtures/approved/jabcode/asan_multi2.png.json")
 
     bgr = cv2.imread(str(img_path))
+    assert bgr is not None
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
 
     with open(sidecar_path, encoding="utf-8") as f:
@@ -120,6 +126,7 @@ def test_sample_symbol_mesh_version_32_anchor_alignment():
     """Verify alignment pattern mesh anchors accurately align on Version 32 multi_block_2_v32.png."""
     img_path = Path("tests/fixtures/approved/jabcode/multi_block_2_v32.png")
     bgr = cv2.imread(str(img_path))
+    assert bgr is not None
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
 
     # Master symbol is at the bottom: y in [1740, 3480], x in [0, 1740]
@@ -136,6 +143,11 @@ def test_sample_symbol_mesh_version_32_anchor_alignment():
     # Sample full 145x145 module matrix
     sampled_m0 = sample_symbol_mesh(rgb, corners_m0, 32, 32)
     assert sampled_m0.shape == (145, 145)
+    # The approved V32 sidecar omits its matrix; derive the exact raster oracle
+    # independently from the known 12-pixel module pitch of this clean fixture.
+    centers = rgb[1746:3480:12, 6:1740:12]
+    expected = ((centers[:, :, 0] > 127) * 4 + (centers[:, :, 1] > 127) * 2 + (centers[:, :, 2] > 127)).astype(np.uint8)
+    assert np.array_equal(sampled_m0, expected)
 
     # Verify finder pattern cores in sampled matrix
     # FP0 (Top-Left) core at (3, 3) is color 0 (Black)
@@ -153,3 +165,44 @@ def test_sample_symbol_mesh_version_32_anchor_alignment():
     for x, y in internal_aps:
         # All internal alignment patterns have core color 6 (Yellow)
         assert sampled_m0[y, x] == 6
+
+
+@pytest.mark.parametrize("version", [10, 32])
+def test_mesh_sampling_preserves_every_module_under_perspective(version):
+    """A projective capture retains every module, including outer edges."""
+    side = 4 * version + 17
+    matrix = np.random.default_rng(42).integers(0, 8, (side, side), dtype=np.uint8)
+    palette = np.array([[r, g, b] for r in (0, 255) for g in (0, 255) for b in (0, 255)], dtype=np.uint8)
+    image = np.repeat(np.repeat(palette[matrix], 8, axis=0), 8, axis=1)
+    edge = side * 8
+    source = np.array([[0, 0], [edge, 0], [edge, edge], [0, edge]], dtype=np.float32)
+    corners = np.array([[60, 20], [edge - 70, 70], [edge + 40, edge], [10, edge - 30]], dtype=np.float32)
+    transform = cv2.getPerspectiveTransform(source, corners)
+    warped = cv2.warpPerspective(image, transform, (edge + 100, edge + 100), flags=cv2.INTER_NEAREST)
+    assert np.array_equal(sample_symbol_mesh(warped, corners, version, version), matrix)
+
+
+@pytest.mark.parametrize("version", [10, 32])
+@pytest.mark.parametrize("distortion", ["curved", "radial"])
+def test_mesh_refines_alignment_patterns_on_curved_capture(version: int, distortion: str) -> None:
+    name = "asan_multi2" if version == 10 else "multi_block_2_v32"
+    bgr = cv2.imread(f"tests/fixtures/approved/jabcode/{name}.png")
+    assert bgr is not None
+    rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+    side = 4 * version + 17
+    edge = side * 12
+    image = rgb[edge : 2 * edge, :edge]
+    expected_rgb = image[6::12, 6::12]
+    expected = (
+        (expected_rgb[..., 0] > 127) * 4 + (expected_rgb[..., 1] > 127) * 2 + (expected_rgb[..., 2] > 127)
+    ).astype(np.uint8)
+    yy, xx = np.indices((edge, edge), dtype=np.float32)
+    displacement = 10 * np.sin(np.pi * xx / edge) * np.sin(np.pi * yy / edge)
+    dx, dy = displacement, displacement * 0.6
+    if distortion == "radial":
+        rx, ry = 2 * xx / edge - 1, 2 * yy / edge - 1
+        radial = 10 * (rx**2 + ry**2 - 2)
+        dx, dy = rx * radial, ry * radial
+    warped = cv2.remap(image, xx - dx, yy - dy, cv2.INTER_NEAREST)
+    corners = np.array([[0, 0], [edge, 0], [edge, edge], [0, edge]], dtype=np.float32)
+    assert np.array_equal(sample_symbol_mesh(warped, corners, version, version), expected)

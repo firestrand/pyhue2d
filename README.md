@@ -8,7 +8,7 @@
 
 **PyHue2D** is a Python toolkit for generating and decoding high-density **color 2-D barcodes**. It starts with ISO/IEC 23634:2022 *JAB Code* support and is designed to explore other colorful symbologies such as color QR codes.
 
-*Encode multi-kilobyte payloads into pocket-sized symbols, leverage up to 8-color palettes for 3× the capacity of classic black-and-white QR codes, and decode them on commodity cameras – all from pure Python.*
+Encode and decode eight-color JAB Code rasters in Python, including Versions 1–32 and docked groups of up to 61 symbols.
 
 ---
 
@@ -16,7 +16,7 @@
 
 * 📦 **Encode** text or binary data to a JAB Code symbol (PNG, SVG, or PDF).
 * 🔍 **Decode** an image to a result with the payload, symbology, version, color count, and error-correction level.
-* 🏗️ **Multi-symbol** decoding for the approved reference images.
+* 🏗️ **Multi-symbol** encoding and decoding from symbol metadata and error-corrected data.
 * 🛠️ **CLI** utilities (`pyhue2d encode / decode`) for seamless shell workflows.
 * ⚡ **Pluggable back‑ends** with a pure‑Python reference and room for optional accelerators.
 * 🌈 **Extensible** design ready for future colour QR, HiQ, or custom palettes.
@@ -47,6 +47,24 @@ decoded = pyhue2d.decode("hello_jab.png")
 print(decoded.payload)
 print(decoded.symbology)  # 'jabcode'
 ```
+
+Use an explicit version for arbitrary binary data and larger symbols:
+
+```python
+payload = bytes(range(256))
+img = pyhue2d.encode(payload, version=10, symbol_count=4, module_size=6)
+decoded = pyhue2d.decode(img)
+assert decoded.payload == payload
+assert decoded.symbol_count == 4
+```
+
+The generalized encoder supports eight colors, Versions 1–32, and 1–61 symbols.
+It rejects payloads that exceed the requested capacity. Omitting `version` with
+one symbol preserves the original Version-1 encoder; use `version=1` to select
+the generalized binary encoder at that size. Raster decoding supports padding,
+scaling, and quarter-turn rotation. General photographed multi-symbol detection
+is not supported; the approved perspective-scan example uses the existing
+single-symbol path.
 
 ---
 
@@ -88,10 +106,11 @@ The fact ledger is [docs/fact-ledger.md](docs/fact-ledger.md).
 
 * [x] JAB Code encode and decode for the approved reference captures
 * [x] Integer error-correction levels taken from those captures
-* [x] Multi-symbol decoding for the approved two-symbol and version-32 captures
-* [ ] Captures at palettes other than 8 colors
-* [ ] Cross-check against the official `jabcode` binary
-* [ ] Decode of photographed prints
+* [x] Generalized eight-color encoding and multi-symbol raster decoding
+* [x] Approved four-color capture decoding
+* [x] Cross-check against the official `jabcode` binary
+* [x] Approved simulated single-symbol perspective scan
+* [ ] General photographed multi-symbol detection
 * [ ] HiQ and color QR symbologies
 * [ ] WebAssembly build
 

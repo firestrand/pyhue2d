@@ -1,5 +1,7 @@
 # Generalized Multi-Symbol and Arbitrary-Version Codec Implementation Plan
 
+**Status (2026-09-25):** Completed and verified locally. Work resumed after V21/V22 commits `5239f98` and `6eb6ce9`; V23–V25 and acceptance gaps are now closed. See [execution evidence](2026-09-25-generalized-multisymbol-state.md) for commands, measured performance, and supported scope.
+
 **Goal:** Expand `pyhue2d` from the current Version-1 dynamic codec into a fully generalized, unbounded multi-symbol and arbitrary-version (Version 1–32) JAB Code codec conforming to ISO/IEC 23634:2022.
 
 **Context & Motivation:**
@@ -16,7 +18,7 @@ flowchart TD
         Img[Input Image] --> MasterFinder[Primary Finder Pattern Detector]
         MasterFinder --> MasterUnwarp[Master Symbol Perspective Unwarp]
         MasterUnwarp --> MasterMeta[Extract Master Metadata Part I & II]
-        MasterMeta --> DockScan[Docking Flag Parser: Top, Bottom, Left, Right]
+        MasterMeta --> DockScan[Decode Master Channel and Docking Trailer]
         DockScan --> SlaveSearch[Secondary Alignment Pattern Search & Docking Traversal]
         SlaveSearch --> MultiMatrix[Ordered Symbol Matrices S_0 .. S_M-1]
     end
@@ -27,14 +29,15 @@ flowchart TD
     end
 
     subgraph Channel ["3. Inter-Symbol Assembly & Demasking (Phase V24)"]
-        SampledModules --> InterSymbol[Inter-Symbol Module Stream Assembly]
-        InterSymbol --> Demask[ISO Section 7.4 Demasking]
-        Demask --> Deinterleave[ISO Section 7.6 De-interleaver]
+        SampledModules --> Demask[Per-Symbol Demasking]
+
+        Demask --> Deinterleave[Per-Symbol De-interleaver]
     end
 
     subgraph Decoding ["4. Error Correction & Data (Phase V21 & V25)"]
-        Deinterleave --> LDPCEngine[Dynamic Gallager LDPC Decoder]
-        LDPCEngine --> DataModes[ISO Section 7.2 Variable-Length Mode Decoder]
+        Deinterleave --> LDPCEngine[Per-Symbol Dynamic LDPC Decoder]
+        LDPCEngine --> InterSymbol[Remove Trailers and Join Net Data Bits]
+        InterSymbol --> DataModes[Variable-Length Mode Decoder]
         DataModes --> PayloadOut[Recovered Arbitrary Payload]
     end
 ```
@@ -65,9 +68,9 @@ flowchart TD
 
 **Verification Command:** `uv run pytest tests/support/test_dynamic_ldpc.py`
 **Acceptance Criteria:**
-- [ ] PRNG passes bit-for-bit test against C reference `lcg64_temper` outputs for 10,000 draws.
-- [ ] Generated $H$ matrix for Version 1 matches existing static matrix exactly.
-- [ ] Systematic Gallager matrices generated for all 32 versions in $<50\text{ms}$ each.
+- [x] PRNG passes bit-for-bit test against C reference `lcg64_temper` outputs for 10,000 draws.
+- [x] Generated $H$ matrices match independent compiled C oracle hashes at capacities 1044 and 2088. No static baseline exists in the originally named directory.
+- [x] Individual systematic H matrices for all 32 default-layout versions meet the measured <50 ms target: 259 cold samples across 37 distinct capacities, worst 48.325 ms. This measures each matrix, not aggregate per-version codebook construction.
 
 ---
 
@@ -78,15 +81,15 @@ flowchart TD
 **Standard Reference:** ISO/IEC 23634:2022 §6.3.3, Table 5 (Alignment Pattern Coordinates)
 
 **Key Deliverables:**
-1. Implement `alignment_pattern_coords(version_x, version_y)` returning the grid coordinates $(x_i, y_j)$ for internal 5-module alignment patterns (present in versions $\ge 4$).
+1. Implement `alignment_pattern_coords(version_x, version_y)` returning the internal alignment grid coordinates (present from Version 6).
 2. Implement mesh-based grid sampler:
    - Detect internal alignment patterns across large symbols (Version 10: 57×57 modules, Version 32: 145×145 modules).
    - Compute local homographies / bilinear interpolation between adjacent alignment pattern anchors to eliminate lens barrel distortion and surface curvature.
 
 **Verification Command:** `uv run pytest tests/facts/test_alignment_grid_sampling.py`
 **Acceptance Criteria:**
-- [ ] Table 5 coordinates match ISO standard across all versions $1 \le V \le 32$.
-- [ ] Module sampling for synthetic Version 10 and Version 32 images yields 100% matrix accuracy without perspective drift.
+- [x] Table 5 coordinates match ISO standard across all versions $1 \le V \le 32$.
+- [x] Module sampling for synthetic Version 10 and Version 32 images yields 100% matrix accuracy without perspective drift.
 
 ---
 
@@ -98,7 +101,7 @@ flowchart TD
 **Reference C Implementation:** `src/jabcode/detector.c` (`findSlaveSymbol`, `detectSlave`, `decodeDockedSlaves`)
 
 **Key Deliverables:**
-1. Parse Master Symbol Part II metadata docking flags (4 bits: Top, Bottom, Left, Right).
+1. Parse docking flags from the error-corrected master channel trailer (Top, Bottom, Left, Right); master metadata supplies version, palette, ECC weights, and mask.
 2. Given host symbol corner coordinates and docked position:
    - Identify shared corner coordinates.
    - Extrapolate external alignment pattern positions of the docked slave symbol.
@@ -107,8 +110,8 @@ flowchart TD
 
 **Verification Command:** `uv run pytest tests/facts/test_multisymbol_docking.py`
 **Acceptance Criteria:**
-- [ ] Correctly identifies the 2 docked symbols in `asan_multi2.png` without fixed coordinate slicing.
-- [ ] Correctly traverses the $2 \times 1$, $3 \times 1$, $2 \times 2$, and $3 \times 3$ symbol grids in `multi_block_*_v32.png`.
+- [x] Correctly identifies the 2 docked symbols in `asan_multi2.png` without fixed coordinate slicing.
+- [x] Correctly traverses the $2 \times 1$, $3 \times 1$, $2 \times 2$, and $3 \times 3$ symbol grids in `multi_block_*_v32.png`.
 
 ---
 
@@ -119,15 +122,15 @@ flowchart TD
 **Standard Reference:** ISO/IEC 23634:2022 §7.4, §7.6
 
 **Key Deliverables:**
-1. Aggregate data modules from all $M$ symbols according to symbol sequence number:
-   - Primary symbol $S_0$ data modules followed by slave symbols $S_1, \dots, S_{M-1}$.
+1. Process symbols in breadth-first docking order:
+   - Decode each symbol independently, then concatenate its net data bits in traversal order.
 2. Apply per-symbol mask removal using each symbol's respective mask pattern.
-3. Multi-symbol de-interleaver: apply deterministic permutation across total aggregate codeword bits.
+3. Per-symbol de-interleaver: permute each symbol separately before LDPC decoding. Remove docking trailers, concatenate the net data bits, and mode-decode once. This corrects the original aggregate-first proposal using the reference decoder's actual behavior.
 
 **Verification Command:** `uv run pytest tests/facts/test_multisymbol_interleaving.py`
 **Acceptance Criteria:**
-- [ ] Combined bitstream accurately reproduces the concatenated LDPC codeword.
-- [ ] De-interleaver satisfies mutual inverse: $\text{deinterleave}(\text{interleave}(x)) == x$ for multi-symbol payloads.
+- [x] Each symbol is deinterleaved and LDPC-decoded independently; trailers are removed before net data bits are concatenated in docking order.
+- [x] De-interleaver satisfies mutual inverse: $\text{deinterleave}(\text{interleave}(x)) == x$ for multi-symbol payloads.
 
 ---
 
@@ -139,17 +142,17 @@ flowchart TD
 
 **Key Deliverables:**
 1. Replace `_MULTI_SIGNATURES` in `src/pyhue2d/jabcode/decoder.py` with the generalized pipeline:
-   - Detect master finder patterns $\to$ traverse docked slaves $\to$ sample alignment grids $\to$ assemble bitstream $\to$ dynamic LDPC decode $\to$ mode unpack.
+   - Detect master $\to$ decode its channel/trailer $\to$ traverse slaves and decode each channel $\to$ join net bits $\to$ mode unpack.
 2. Generate synthetic multi-symbol symbols (using the official C reference encoder `jabcodeWriter`) with arbitrary, unique strings (not lorem ipsum).
 3. Verify that `pyhue2d.decode()` successfully decodes these arbitrary multi-symbol captures end-to-end.
 4. Verify round-trip encoding and decoding across arbitrary versions.
 
 **Verification Command:** `uv run pytest tests/facts/test_general_multisymbol_decode.py && just test`
 **Acceptance Criteria:**
-- [ ] Unseen, non-lorem multi-symbol images decode to their exact plaintexts.
-- [ ] Zero static signatures remain in the decoder.
-- [ ] All 915 existing unit and fact tests continue to pass.
-- [ ] `just check` passes with 0 lint, format, or type errors.
+- [x] Unseen, non-lorem multi-symbol images decode to their exact plaintexts.
+- [x] Zero static signatures remain in the decoder.
+- [x] Full verification passes: 1082 tests passed, with the original 18 skips and 7 expected failures unchanged.
+- [x] `just check` passes with 0 lint, format, or type errors.
 
 ---
 

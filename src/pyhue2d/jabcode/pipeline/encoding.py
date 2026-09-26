@@ -22,6 +22,7 @@ from ..ldpc.seed_config import RandomSeedConfig
 from ..patterns.alignment import AlignmentPatternGenerator
 from ..patterns.finder import FinderPatternGenerator
 from ..version_calculator import SymbolVersionCalculator
+from .general_matrix import encode_class_matrix
 from .processor import DataProcessor
 
 
@@ -133,7 +134,15 @@ class EncodingPipeline:
             alignment_patterns = self._generate_alignment_patterns(symbol)
 
             # Step 6: Create symbol matrix
-            symbol_matrix = self._assemble_symbol_matrix(symbol, protected_data, alignment_patterns)
+            if self.settings["color_count"] == 8:
+                matrix, symbol_version = encode_class_matrix(
+                    data, self.settings["version"], self.settings["ecc_level"], self.settings["mask_pattern"]
+                )
+                symbol = self._create_symbol_structure(symbol_version, protected_data)
+                alignment_patterns = self._generate_alignment_patterns(symbol)
+                symbol_matrix = np.asarray(matrix, dtype=np.uint8)
+            else:
+                symbol_matrix = self._assemble_symbol_matrix(symbol, protected_data, alignment_patterns)
 
             # Step 7: Apply color mapping
             color_matrix = self._apply_color_mapping(symbol_matrix)
@@ -220,6 +229,7 @@ class EncodingPipeline:
             "module_size": self.settings.get("module_size", 4),
             "quiet_zone": self.settings["quiet_zone"],
             "color_count": self.settings["color_count"],
+            "background_color": self.color_palette.to_rgb_array()[0].tolist(),
         }
         renderer = BitmapRenderer(renderer_settings)
         bitmap = renderer.render_matrix(color_matrix)

@@ -24,6 +24,7 @@ class EncodeResult:
     mask_pattern: int = 7
     width: int = 21
     height: int = 21
+    symbol_count: int = 1
 
 
 @dataclass

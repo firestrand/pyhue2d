@@ -154,6 +154,64 @@ def alignment_pattern_coords(version_x: int, version_y: int, zero_indexed: bool 
     return coords
 
 
+def _refine_alignment_anchors(image: np.ndarray, module_anchors: np.ndarray, transform: np.ndarray) -> np.ndarray:
+    anchors = cv2.perspectiveTransform(module_anchors.reshape(1, -1, 2), transform).reshape(module_anchors.shape)
+    yellow = ((image[..., 0] > 160) & (image[..., 1] > 160) & (image[..., 2] < 100)).astype(np.uint8)
+    _, _, stats, centroids = cv2.connectedComponentsWithStats(yellow, connectivity=4)
+    refined = anchors.copy()
+    offsets = np.array([[0, -1], [-1, 0], [1, 0], [0, 1], [-1, -1], [1, 1], [-1, 1], [1, -1]], dtype=np.float32)
+    matches = 0
+    rows, cols = anchors.shape[:2]
+    for row in range(rows):
+        for col in range(cols):
+            if row in (0, rows - 1) and col in (0, cols - 1):
+                continue
+            center = module_anchors[row, col]
+            projected = cv2.perspectiveTransform((center + offsets).reshape(1, -1, 2), transform)[0]
+            vectors = projected - anchors[row, col]
+            pitch = float(np.linalg.norm(vectors[1]))
+            distance = np.linalg.norm(centroids - anchors[row, col], axis=1)
+            candidates = np.flatnonzero(
+                (distance < 2 * pitch)
+                & (stats[:, cv2.CC_STAT_AREA] > 0.4 * pitch**2)
+                & (stats[:, cv2.CC_STAT_AREA] < 1.8 * pitch**2)
+            )
+            for candidate in candidates[np.argsort(distance[candidates])]:
+                points = np.rint(centroids[candidate] + vectors).astype(int)
+                if (
+                    np.any(points < 0)
+                    or np.any(points[:, 0] >= image.shape[1])
+                    or np.any(points[:, 1] >= image.shape[0])
+                ):
+                    continue
+                colors = image[points[:, 1], points[:, 0]]
+                cyan = (colors[:, 0] < 100) & (colors[:, 1] > 160) & (colors[:, 2] > 160)
+                if np.all(cyan[:4]) and (np.all(cyan[4:6]) or np.all(cyan[6:])):
+                    refined[row, col] = centroids[candidate]
+                    matches += 1
+                    break
+    if matches < (rows * cols - 4) / 2:
+        return anchors
+    for row, col in ((0, 0), (0, cols - 1), (rows - 1, 0), (rows - 1, cols - 1)):
+        center = anchors[row, col]
+        neighbor = cv2.perspectiveTransform(
+            (module_anchors[row, col] + np.array([[1, 0]], dtype=np.float32)).reshape(1, 1, 2), transform
+        )[0, 0]
+        pitch = float(np.linalg.norm(neighbor - center))
+        x0, y0 = np.maximum(np.floor(center - 2 * pitch).astype(int), 0)
+        x1, y1 = np.minimum(np.ceil(center + 2 * pitch).astype(int), [image.shape[1], image.shape[0]])
+        patch = image[y0:y1, x0:x1]
+        cx, cy = np.rint(center - [x0, y0]).astype(int)
+        if not (0 <= cy < patch.shape[0] and 0 <= cx < patch.shape[1]):
+            continue
+        mask = np.all((patch > 127) == (patch[cy, cx] > 127), axis=-1).astype(np.uint8)
+        _, labels, component_stats, component_centers = cv2.connectedComponentsWithStats(mask, connectivity=4)
+        label = labels[cy, cx]
+        if 0.4 * pitch**2 < component_stats[label, cv2.CC_STAT_AREA] < 1.8 * pitch**2:
+            refined[row, col] = component_centers[label] + [x0, y0]
+    return refined
+
+
 def sample_symbol_mesh_rgb(
     image: np.ndarray,
     corners: np.ndarray,
@@ -162,8 +220,7 @@ def sample_symbol_mesh_rgb(
 ) -> np.ndarray:
     """Sample raw RGB module colors across an alignment pattern mesh.
 
-    Handles geometric perspective warping and distortion by interpolating
-    sub-block homographies across the internal alignment pattern grid.
+    Refines projected anchors against APX patterns and samples local homographies.
 
     Args:
         image: Source RGB image array of shape (H, W, 3).
@@ -214,16 +271,13 @@ def sample_symbol_mesh_rgb(
     ys_ap = get_ap_positions(version_y, zero_indexed=True)
     nx, ny = len(xs_ap), len(ys_ap)
 
-    # Compute image positions of all nx x ny anchors via bilinear interpolation
-    TL, TR, BR, BL = corners_f32
-    anchors = np.zeros((ny, nx, 2), dtype=np.float32)
-    for i, yi in enumerate(ys_ap):
-        v = (yi + 0.5) / float(height)
-        for j, xi in enumerate(xs_ap):
-            u = (xi + 0.5) / float(width)
-            top_pt = (1.0 - u) * TL + u * TR
-            bot_pt = (1.0 - u) * BL + u * BR
-            anchors[i, j] = (1.0 - v) * top_pt + v * bot_pt
+    # Project module anchors through the same homography as the outer corners.
+    # Bilinear corner interpolation does not preserve projective perspective.
+    module_corners = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
+    transform = cv2.getPerspectiveTransform(module_corners, corners_f32)
+    anchor_x, anchor_y = np.meshgrid(np.asarray(xs_ap) + 0.5, np.asarray(ys_ap) + 0.5)
+    module_anchors = np.stack([anchor_x, anchor_y], axis=-1).astype(np.float32)
+    anchors = _refine_alignment_anchors(image, module_anchors, transform)
 
     sampled = np.zeros((height, width, 3), dtype=np.uint8)
 

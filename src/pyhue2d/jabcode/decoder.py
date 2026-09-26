@@ -25,6 +25,7 @@ from .ldpc.codec import LDPCCodec
 from .ldpc.parameters import LDPCParameters
 from .ldpc.seed_config import RandomSeedConfig
 from .module_data_extractor import ModuleDataExtractor
+from .raster_decoder import decode_matrix, decode_raster
 
 logger = logging.getLogger(__name__)
 
@@ -270,145 +271,6 @@ class JABCodeDecoder:
         except Exception:
             return None, None
 
-    _MULTI_PALETTE = (
-        (0, 0, 0),
-        (0, 0, 255),
-        (0, 255, 0),
-        (0, 255, 255),
-        (255, 0, 0),
-        (255, 0, 255),
-        (255, 255, 0),
-        (255, 255, 255),
-    )
-    _MULTI_SIGNATURES: dict[tuple[int, ...], tuple[bytes, int, int, int, int, int]] = {
-        (0, 0, 7, 0, 0, 7, 7, 3, 0, 3, 4, 1): (
-            b"Hello multi blocks string test here 123456789",
-            10,
-            8,
-            0,
-            7,
-            2,
-        ),
-        (7, 1, 0, 7, 4, 1, 6, 5, 0, 2, 2, 6): (
-            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
-            32,
-            8,
-            0,
-            7,
-            2,
-        ),
-        (6, 7, 7, 5, 6, 2, 7, 4, 5, 0, 1, 5): (
-            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
-            32,
-            8,
-            0,
-            7,
-            3,
-        ),
-        (0, 0, 4, 3, 5, 6, 0, 0, 5, 0, 5, 0): (
-            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
-            32,
-            8,
-            0,
-            7,
-            4,
-        ),
-        (0, 5, 0, 7, 6, 0, 0, 4, 0, 0, 0, 0): (
-            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
-            32,
-            8,
-            0,
-            7,
-            5,
-        ),
-        (0, 3, 0, 0, 4, 0, 0, 2, 0, 0, 4, 0): (
-            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
-            32,
-            8,
-            0,
-            7,
-            6,
-        ),
-        (0, 3, 0, 4, 4, 0, 0, 2, 0, 4, 6, 0): (
-            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
-            32,
-            8,
-            0,
-            7,
-            7,
-        ),
-        (0, 3, 0, 4, 4, 1, 0, 2, 0, 4, 6, 0): (
-            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
-            32,
-            8,
-            0,
-            7,
-            8,
-        ),
-        (0, 6, 0, 7, 6, 0, 0, 6, 0, 2, 0, 0): (
-            ("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 15).strip().encode(),
-            32,
-            8,
-            0,
-            7,
-            9,
-        ),
-    }
-
-    def _capture_signature(self, image: Image.Image) -> tuple[int, ...]:
-        """Quantize a fixed set of pixels so only the approved captures match."""
-        rgb = image.convert("RGB")
-        width, height = rgb.size
-        fractions = (
-            (0.1, 0.1),
-            (0.5, 0.1),
-            (0.9, 0.1),
-            (0.1, 0.5),
-            (0.5, 0.5),
-            (0.9, 0.5),
-            (0.1, 0.9),
-            (0.5, 0.9),
-            (0.9, 0.9),
-            (0.3, 0.3),
-            (0.7, 0.7),
-            (0.2, 0.8),
-        )
-        signature: list[int] = []
-        for fx, fy in fractions:
-            pixel = rgb.getpixel((min(width - 1, int(fx * (width - 1))), min(height - 1, int(fy * (height - 1)))))
-            signature.append(
-                min(
-                    range(len(self._MULTI_PALETTE)),
-                    key=lambda index: sum(
-                        (channel - ref) ** 2 for channel, ref in zip(pixel, self._MULTI_PALETTE[index])
-                    ),
-                )
-            )
-        return tuple(signature)
-
-    def _looks_like_multisymbol_grid(self, image: Image.Image) -> bool:
-        if image.size == (684, 1368):
-            return True
-        return image.width >= 1740 and image.height >= 1740 and image.width % 1740 == 0 and image.height % 1740 == 0
-
-    def _match_known_multisymbol(self, image: Image.Image) -> Optional[DecodeResult]:
-        if not self._looks_like_multisymbol_grid(image):
-            return None
-        found = self._MULTI_SIGNATURES.get(self._capture_signature(image))
-        if found is None:
-            return None
-        payload, version, color_count, ecc_level, mask_pattern, symbol_count = found
-        return DecodeResult(
-            payload=payload,
-            symbology="jabcode",
-            version=version,
-            color_count=color_count,
-            ecc_level=ecc_level,
-            mask_pattern=mask_pattern,
-            symbol_count=symbol_count,
-            corrected_error_count=0,
-        )
-
     def decode(
         self,
         image_source: Union[str, Path, Image.Image, np.ndarray, list[list[int]]],
@@ -432,17 +294,24 @@ class JABCodeDecoder:
             # Step 1: Obtain symbol matrix
             if isinstance(image_source, list):
                 matrix = image_source
-            else:
-                image = self._load_image(image_source)
-                known = self._match_known_multisymbol(image)
-                if known is not None:
+                if len(matrix) != 21 or (matrix and len(matrix[0]) != 21):
+                    decoded = decode_matrix(matrix, error_correction)
+                    self._update_stats(time.time() - start_time, 4 * decoded.symbol_count)
                     logger.info(
                         "decode_complete",
-                        extra={"version": known.version, "corrected_error_count": known.corrected_error_count},
+                        extra={"version": decoded.version, "corrected_error_count": decoded.corrected_error_count},
                     )
-                    return known
-                if self._looks_like_multisymbol_grid(image):
-                    raise JABCodeError("No JABCode symbols detected in image")
+                    return decoded
+            else:
+                image = self._load_image(image_source)
+                decoded = decode_raster(image, error_correction)
+                if decoded is not None:
+                    logger.info(
+                        "decode_complete",
+                        extra={"version": decoded.version, "corrected_error_count": decoded.corrected_error_count},
+                    )
+                    self._update_stats(time.time() - start_time, 4 * decoded.symbol_count)
+                    return decoded
                 palette = None
                 if image.size != (252, 252):
                     unwarped, cal_palette = self._detect_and_unwarp_symbol(image)
@@ -482,7 +351,9 @@ class JABCodeDecoder:
                 )
             )
             data_bits, corrected_errors = codec.decode_codeword_bits_with_correction(
-                codeword_bits, error_correction=error_correction
+                codeword_bits,
+                error_correction=error_correction,
+                validate_syndrome=not isinstance(image_source, list),
             )
 
             # Step 5: Mode decode

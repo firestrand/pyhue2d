@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Replaced stored multi-symbol payload signatures with finder detection,
+  metadata-driven docking traversal, per-symbol LDPC decoding, and bitstream assembly.
+* Added explicit `version` and `symbol_count` encoding options for eight-color
+  Versions 1–32 and groups of up to 61 symbols, including binary payloads.
+* Added `EncodeResult.symbol_count` and capacity overflow rejection for generalized encoding.
+* Strengthened LDPC verification against the C reference and corrected data-bit
+  error correction and projective sampling.
+
 ## 0.2.0 (2026-09-25)
 
 ### Features

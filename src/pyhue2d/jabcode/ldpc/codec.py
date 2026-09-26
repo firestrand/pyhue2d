@@ -423,13 +423,17 @@ class LDPCCodec:
         return deinterleave_bits(bits)
 
     def decode_codeword_bits_with_correction(
-        self, codeword_bits: list[int], error_correction: bool = True
+        self, codeword_bits: list[int], error_correction: bool = True, *, validate_syndrome: bool = False
     ) -> tuple[list[int], int]:
         """Decode LDPC codeword bits to pre-ECC data bits with optional error correction.
+
+        This legacy interface retains best-effort output for uncorrectable input.
+        Generalized symbol decoding uses the stream decoder's strict validation.
 
         Args:
             codeword_bits: List of binary bits (0 or 1).
             error_correction: Whether to run error correction (default True).
+            validate_syndrome: Reject invalid codewords instead of returning legacy best-effort output.
 
         Returns:
             Tuple of (data_bits, corrected_error_count).
@@ -437,7 +441,14 @@ class LDPCCodec:
         deint = self.deinterleave(codeword_bits)
         wc = self.parameters.wc
         wr = self.parameters.wr
-        return decode_ldpc_stream(deint, wc, wr, error_correction=error_correction, generator=default_generator)
+        return decode_ldpc_stream(
+            deint,
+            wc,
+            wr,
+            error_correction=error_correction,
+            generator=default_generator,
+            validate_syndrome=validate_syndrome,
+        )
 
     def decode_codeword_bits(self, codeword_bits: list[int]) -> list[int]:
         """Decode LDPC codeword bits to pre-ECC data bits.

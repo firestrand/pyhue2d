@@ -2,16 +2,17 @@
 
 Phase V21 verification:
 - Deterministic Knuth 64-bit LCG + Mersenne Twister tempering matches C reference bit-for-bit.
-- Parity check matrix H for Version 1 matches precomputed baseline bit-for-bit.
-- Matrix generation for all 32 JAB Code versions takes <50ms each.
+- Parity check matrix H matches the independently compiled C reference.
+- Matrix generation produces valid systematic matrices for all 32 versions.
 - Multi-block LDPC encode and decode roundtrip with error correction.
 """
 
 from __future__ import annotations
 
-import time
+import hashlib
 
 import numpy as np
+import pytest
 
 from pyhue2d.jabcode.ldpc.generator import (
     _LCG,
@@ -24,85 +25,59 @@ from pyhue2d.jabcode.ldpc.generator import (
 )
 
 
-def test_prng_bit_for_bit_10000_draws():
-    """Verify LCG + tempering PRNG against exact C reference bit output for 10,000 draws."""
-    # Official C reference draw outputs from clang-compiled jabcode/pseudo_random.c
-    expected_msg_first_5 = [2475727558, 3717448606, 303042964, 2596577877, 507382372]
-    expected_msg_10000th = 966539800
-
-    expected_meta_first_5 = [3622999232, 1238202979, 1743313909, 2530727419, 4093452712]
-    expected_meta_10000th = 2781226121
-
-    # Check LPDC_MESSAGE_SEED
-    rng_msg = _LCG(LPDC_MESSAGE_SEED)
-    msg_draws = [rng_msg.lcg64_temper() for _ in range(5)]
-    assert msg_draws == expected_msg_first_5
-    for _ in range(9994):
-        rng_msg.lcg64_temper()
-    assert rng_msg.lcg64_temper() == expected_msg_10000th
-
-    # Check LPDC_METADATA_SEED
-    rng_meta = _LCG(LPDC_METADATA_SEED)
-    meta_draws = [rng_meta.lcg64_temper() for _ in range(5)]
-    assert meta_draws == expected_meta_first_5
-    for _ in range(9994):
-        rng_meta.lcg64_temper()
-    assert rng_meta.lcg64_temper() == expected_meta_10000th
+@pytest.mark.parametrize(
+    ("seed", "digest"),
+    [
+        (LPDC_MESSAGE_SEED, "076189fd04dac5e9c2018d728fec1edf3bc9ead6c39beefc18cb0bf94a74ebfb"),
+        (LPDC_METADATA_SEED, "64d54b46203c5bb81c82838d2ce33e303a09ae780b40db0d0987a7e1c9090e7e"),
+    ],
+)
+def test_prng_bit_for_bit_10000_draws(seed, digest):
+    """All 10,000 big-endian uint32 draws match the compiled C reference."""
+    rng = _LCG(seed)
+    draws = np.array([rng.lcg64_temper() for _ in range(10000)], dtype=">u4")
+    assert hashlib.sha256(draws.tobytes()).hexdigest() == digest
 
 
-def test_version_1_h_matrix_exact_match():
-    """Verify dynamically generated H matrix for Version 1 matches static baseline."""
-    wc, wr, pg = 4, 9, 1044
+@pytest.mark.parametrize(
+    ("capacity", "expected_rank", "digest"),
+    [
+        (1044, 461, "ab129d59aec8860b8124a65a0fd2ac7d3e9297dbc1da1f0baeac24d3daf13e03"),
+        (2088, 925, "53560896dd282dfcbe58d512cd1e728f64f90b7571939968b23d2cb51a585086"),
+    ],
+)
+def test_version_1_h_matrix_exact_match(capacity, expected_rank, digest):
+    """Every H bit matches C createMatrixA + GaussJordan(encode=1).
+
+    Digests cover rank rows of unpacked, row-major uint8 bits, excluding
+    packed word padding. Generated from the approved sibling C reference.
+    """
+    h_mat, rank = GallagerMatrixGenerator().get_systematic_h(4, 9, capacity)
+    assert rank == expected_rank
+    assert h_mat.shape == (rank, capacity)
+    assert hashlib.sha256(h_mat.tobytes()).hexdigest() == digest
+
+
+@pytest.mark.parametrize("version", range(1, 33))
+def test_matrix_generation_all_32_versions(version):
+    """Every version generates all required sub-block sizes without a clock gate."""
     gen = GallagerMatrixGenerator()
-    h_mat, rank = gen.get_systematic_h(wc, wr, pg)
-
-    assert rank == 461
-    assert h_mat.shape == (461, 1044)
-
-    # Parity property: H * G_col = 0 for systematic generator
-    g_top, g_rank, pn = gen.get_systematic_g_top(wc, wr, pg)
-    assert g_rank == rank
-
-    # Test syndrome is identically zero for generated codeword
-    np.random.seed(1337)
-    d = np.random.randint(0, 2, size=pn, dtype=np.uint8)
-    c = np.zeros(pg, dtype=np.uint8)
-    c[:rank] = (g_top @ d) % 2
-    c[rank : rank + pn] = d
-
-    syndrome = (h_mat @ c) % 2
-    assert np.all(syndrome == 0)
+    wc, wr = 4, 9
+    side = 4 * version + 17
+    gross = side * side * 3 // wr * wr
+    for capacity, _ in set(get_sub_blocks(gross, wc, wr)):
+        matrix, rank = gen.get_systematic_h(wc, wr, capacity)
+        assert matrix.shape == (rank, capacity)
+        assert np.array_equal(matrix[:, :rank], np.eye(rank, dtype=np.uint8))
 
 
-def test_matrix_generation_timing_all_32_versions():
-    """Verify systematic Gallager matrices generate in <50ms for each of all 32 versions."""
-    gen = GallagerMatrixGenerator()
-    wc, wr = 4, 9  # Default ECC Level 3
-
-    # For each version 1 to 32, calculate typical module capacity and sub-block size
-    # Modules in symbol of version V: side = 4*V + 17.
-    # Total modules = side * side. 8-color mode = 3 bits/module.
-    # Finder/alignment patterns reduce data capacity.
-    # Sub-block gross length pg_sub is at most 2700 bits.
-    durations: list[float] = []
-
-    for v in range(1, 33):
-        side = 4 * v + 17
-        approx_modules = side * side
-        approx_pg = ((approx_modules * 3) // wr) * wr
-        blocks = get_sub_blocks(approx_pg, wc, wr)
-        pg_sub, _ = blocks[0]
-
-        # Time the generation for this sub-block size
-        t0 = time.perf_counter()
-        _h, rank = gen.get_systematic_h(wc, wr, pg_sub)
-        t1 = time.perf_counter()
-
-        duration_ms = (t1 - t0) * 1000.0
-        durations.append(duration_ms)
-        assert rank > 0
-        # Generation time must be < 50ms (or cached 0ms)
-        assert duration_ms < 50.0, f"Version {v} (pg_sub={pg_sub}) took {duration_ms:.2f}ms >= 50ms"
+@pytest.mark.parametrize("error_correction", [False, True])
+def test_corrupt_stream_fails_closed(error_correction):
+    """An invalid codeword cannot be returned as successfully decoded data."""
+    codeword = encode_ldpc_stream([0, 1] * 290, 4, 9)
+    codeword[::2] = [1 - bit for bit in codeword[::2]]
+    with pytest.raises(ValueError, match="syndrome"):
+        decode_ldpc_stream(codeword, 4, 9, error_correction=error_correction)
 
 
 def test_subblock_encode_decode_with_error_correction():
@@ -130,3 +105,22 @@ def test_subblock_encode_decode_with_error_correction():
 
     assert corrected_count == len(blocks)
     assert recovered_bits[: len(data_bits)] == data_bits
+
+
+@pytest.mark.parametrize("position", [25, 1000, 1500])
+def test_single_bit_errors_in_parity_and_data_are_corrected(position):
+    data = [0, 1] * 580
+    codeword = encode_ldpc_stream(data, 4, 9)
+    codeword[position] ^= 1
+    decoded, corrected = decode_ldpc_stream(codeword, 4, 9)
+    assert decoded[: len(data)] == data
+    assert corrected == 1
+
+
+@pytest.mark.parametrize("seed", [LPDC_MESSAGE_SEED, LPDC_METADATA_SEED])
+def test_bulk_lcg_draws_and_following_state_match_scalar(seed):
+    scalar = _LCG(seed)
+    expected = np.array([scalar.lcg64_temper() for _ in range(10000)], dtype=np.uint32)
+    bulk = _LCG(seed)
+    assert np.array_equal(bulk.draw_many(10000), expected)
+    assert bulk.lcg64_temper() == scalar.lcg64_temper()

@@ -1,20 +1,16 @@
-# Profiling Notes (Phase V19 Hardening)
+# Decode profiling
 
-This directory contains `cProfile` traces for single-symbol (`example1.png`) and large multi-symbol (`multi_block_2_v32.png`) decode execution.
+These `cProfile` reports were regenerated after replacing payload signatures with
+real channel decoding. They measure one cold decode in a process; profiling
+overhead and concurrent work affect timings.
 
-## 1. `example1.png` Decode Trace (`example1_decode.prof.txt`)
-- **Total Duration**: ~0.36 seconds
-- **Function Breakdown**:
-  - `decode_codeword_bits_with_correction`: ~0.347s cumulative
-    - `_gauss_jordan`: 0.158s (systematic generator / check matrix reduction over GF(2))
-    - `_create_matrix_a`: 0.095s (LDPC base permutation matrix generation)
-  - `sample_symbol_matrix`: ~0.004s (pixel extraction and Euclidean color palette matching)
-  - `decode_data_from_bits`: < 0.001s (character decoding and state transitions)
-- **Observations**: Matrix algebra (Gauss-Jordan elimination) dominates single-symbol decode time. Since the systematic matrix $H_{sys}$ depends only on $(wc=3, wr=6, v=1)$, caching $H_{sys}$ would reduce decode times to < 0.01 seconds.
+- [Single symbol](example1_decode.prof.txt): `example1.png`, about 0.019 seconds,
+  including finder detection, dynamic LDPC, and mode decoding.
+- [Two Version-32 symbols](v32_decode.prof.txt): `multi_block_2_v32.png`, about
+  1.156 seconds. The actual channel path now dominates, including LDPC decoding
+  and deinterleaving; the linked report includes the per-function breakdown.
 
-## 2. Version 32 Multi-Block Decode Trace (`v32_decode.prof.txt`)
-- **Total Duration**: ~0.046 seconds
-- **Function Breakdown**:
-  - NumPy array loading and variance computation: ~0.031s
-  - Image file decoding (`PIL.PngImagePlugin`): ~0.012s
-- **Observations**: Image loading and memory array access account for 100% of runtime; no performance bottlenecks detected.
+The old Version-32 report measured image loading and a stored payload lookup;
+its timing was not evidence of codec performance. Current reports validate that
+symbol content is decoded. Generator caches reuse matrices across matching
+subblocks. No optional accelerator was added.

@@ -40,6 +40,22 @@ class _LCG:
         self.seed = (6364136223846793005 * self.seed + 1) & 0xFFFFFFFFFFFFFFFF
         return _temper(self.seed >> 32)
 
+    def draw_many(self, count: int) -> np.ndarray:
+        """Generate a positive count of draws using uint64 prefix arithmetic."""
+        powers = np.multiply.accumulate(np.full(count, 6364136223846793005, dtype=np.uint64))
+        offsets = np.empty(count, dtype=np.uint64)
+        offsets[0] = 1
+        offsets[1:] = powers[:-1]
+        np.cumsum(offsets, dtype=np.uint64, out=offsets)
+        states = np.uint64(self.seed) * powers + offsets
+        self.seed = int(states[-1])
+        values = (states >> 32).astype(np.uint32)
+        values ^= values >> 11
+        values ^= (values << 7) & np.uint32(0x9D2C5680)
+        values ^= (values << 15) & np.uint32(0xEFC60000)
+        values ^= values >> 18
+        return values
+
 
 def create_matrix_a(wc: int, wr: int, capacity: int) -> np.ndarray:
     """Create LDPC parity-check matrix A according to Gallager construction.
@@ -53,33 +69,34 @@ def create_matrix_a(wc: int, wr: int, capacity: int) -> np.ndarray:
         1D uint32 array representing the bit-packed matrix A.
     """
     nb_pcb = capacity // 2 if wr < 4 else (capacity // wr) * wc
-    effwidth = math.ceil(capacity / 32) * 32
     offset = math.ceil(capacity / 32)
 
     matrix_a = np.zeros(offset * nb_pcb, dtype=np.uint32)
     permutation = list(range(capacity))
 
-    # Fill first set with consecutive ones in each row
-    for i in range(capacity // wr):
-        for j in range(wr):
-            idx = (i * (effwidth + wr) + j) // 32
-            shift = 31 - ((i * (effwidth + wr) + j) % 32)
-            matrix_a[idx] |= 1 << shift
+    columns = np.arange(capacity, dtype=np.int32)
+    word_columns = columns // 32
+    bit_masks = np.left_shift(np.uint32(1), (31 - columns % 32).astype(np.uint32))
+    np.bitwise_or.at(matrix_a, (columns // wr) * offset + word_columns, bit_masks)
 
     # Permute columns for remaining sets using Gallager algorithm
     rng = _LCG(LPDC_MESSAGE_SEED)
     k_step = capacity // wr
     for i in range(1, wc):
         off_index = i * k_step
-        for j in range(capacity):
-            val = rng.lcg64_temper()
-            pos = int(np.float32(val) / np.float32(0xFFFFFFFF) * np.float32(capacity - j))
-            chosen = permutation[pos]
-            k = chosen // wr
-            matrix_a[(off_index + k) * offset + j // 32] |= 1 << (31 - (j % 32))
+        draws = rng.draw_many(capacity)
+        positions = (
+            draws.astype(np.float32) / np.float32(0xFFFFFFFF) * np.arange(capacity, 0, -1, dtype=np.float32)
+        ).astype(np.int32)
+        chosen_columns = np.empty(capacity, dtype=np.int32)
+        for j, raw_position in enumerate(positions):
+            pos = int(raw_position)
+            chosen_columns[j] = permutation[pos]
             tmp = permutation[capacity - 1 - j]
             permutation[capacity - 1 - j] = permutation[pos]
             permutation[pos] = tmp
+        indices = (off_index + chosen_columns // wr) * offset + word_columns
+        np.bitwise_or.at(matrix_a, indices, bit_masks)
 
     return matrix_a
 
@@ -407,6 +424,8 @@ def decode_ldpc_subblock(
     pg_sub: int,
     error_correction: bool = True,
     generator: GallagerMatrixGenerator | None = None,
+    *,
+    validate_syndrome: bool = True,
 ) -> tuple[np.ndarray, int]:
     """Decode a single LDPC sub-block with hard-decision bit-flipping error correction."""
     if generator is None:
@@ -420,7 +439,7 @@ def decode_ldpc_subblock(
         s_sum = int(np.sum(s))
         if s_sum > 0:
             for _ in range(15):
-                unsatisfied = H.T @ s
+                unsatisfied = H.T @ s.astype(np.int32)
                 best_idx = int(np.argmax(unsatisfied))
                 c[best_idx] ^= 1
                 new_s = (H @ c) % 2
@@ -434,6 +453,8 @@ def decode_ldpc_subblock(
                 else:
                     c[best_idx] ^= 1
                     break
+    if validate_syndrome and np.any((H @ c) % 2):
+        raise ValueError("LDPC codeword has a nonzero syndrome after correction")
     data_bits = c[rank : rank + pn_sub]
     return data_bits, corrected_count
 
@@ -476,6 +497,8 @@ def decode_ldpc_stream(
     wr: int,
     error_correction: bool = True,
     generator: GallagerMatrixGenerator | None = None,
+    *,
+    validate_syndrome: bool = True,
 ) -> tuple[list[int], int]:
     """Decode an arbitrary LDPC codeword bit stream across sub-blocks according to ISO/IEC 23634."""
     if generator is None:
@@ -495,7 +518,13 @@ def decode_ldpc_stream(
     for pg_sub, _pn_sub in blocks:
         sub_c = codeword_arr[curr_offset : curr_offset + pg_sub]
         sub_d, corrected = decode_ldpc_subblock(
-            sub_c, wc, wr, pg_sub, error_correction=error_correction, generator=generator
+            sub_c,
+            wc,
+            wr,
+            pg_sub,
+            error_correction=error_correction,
+            generator=generator,
+            validate_syndrome=validate_syndrome,
         )
         data_parts.append(sub_d)
         total_corrected += corrected

@@ -7,6 +7,8 @@ from PIL import Image
 
 from .jabcode.color_palette import ColorPalette
 from .jabcode.decoder import JABCodeDecoder
+from .jabcode.general_encoder import build_general_matrix
+from .jabcode.multisymbol_encoder import build_multisymbol_matrix
 from .jabcode.symbol_matrix_builder import SymbolMatrixBuilder
 from .result import CapacityResult, DecodeResult, EncodeResult, InspectResult
 
@@ -16,6 +18,8 @@ def encode_symbol(
     colors: int = 8,
     ecc_level: Union[int, str] = 3,
     mask_pattern: int = 7,
+    version: int | None = None,
+    symbol_count: int = 1,
 ) -> EncodeResult:
     """Encode *data* into a JABCode symbol matrix.
 
@@ -24,21 +28,34 @@ def encode_symbol(
         colors: Number of colors to use (default 8).
         ecc_level: Error correction level integer or string (default 3).
         mask_pattern: Mask pattern index (default 7).
+        version: Explicit side version (1–32); omission preserves legacy Version 1 output.
+        symbol_count: Number of docked symbols (1–61).
 
     Returns:
         Structured EncodeResult with .matrix (2D list of color indices).
     """
     builder = SymbolMatrixBuilder()
-    matrix = builder.build_matrix(data, colors=colors, ecc_level=ecc_level, mask_pattern=mask_pattern)
     ecc_int = ecc_level if isinstance(ecc_level, int) else 3
+    actual_version = 1 if version is None else version
+    if type(actual_version) is not int or not 1 <= actual_version <= 32:
+        raise ValueError("Symbol version must be an integer between 1 and 32")
+    if type(symbol_count) is not int or not 1 <= symbol_count <= 61:
+        raise ValueError("Symbol count must be an integer between 1 and 61")
+    if symbol_count != 1:
+        matrix = build_multisymbol_matrix(data, actual_version, colors, ecc_int, mask_pattern, symbol_count)
+    elif version is None:
+        matrix = builder.build_matrix(data, colors=colors, ecc_level=ecc_level, mask_pattern=mask_pattern)
+    else:
+        matrix = build_general_matrix(data, actual_version, colors, ecc_int, mask_pattern)
     return EncodeResult(
         matrix=matrix,
-        version=1,
+        version=actual_version,
         color_count=colors,
         ecc_level=ecc_int,
         mask_pattern=mask_pattern,
         width=len(matrix[0]),
         height=len(matrix),
+        symbol_count=symbol_count,
     )
 
 
@@ -49,6 +66,8 @@ def encode(
     quiet_zone: int = 4,
     module_size: int = 12,
     mask_pattern: int = 7,
+    version: int | None = None,
+    symbol_count: int = 1,
 ) -> Image.Image:
     """Encode *data* to a colour 2‑D symbol such as JAB Code.
 
@@ -59,11 +78,15 @@ def encode(
         quiet_zone: Width of quiet zone in modules (default 4).
         module_size: Module size in pixels (default 12).
         mask_pattern: Mask pattern index (default 7).
+        version: Explicit side version (1–32); omission preserves legacy Version 1 output.
+        symbol_count: Number of docked symbols (1–61).
 
     Returns:
         PIL Image containing the encoded JABCode symbol.
     """
-    res = encode_symbol(data, colors=colors, ecc_level=ecc_level, mask_pattern=mask_pattern)
+    res = encode_symbol(
+        data, colors=colors, ecc_level=ecc_level, mask_pattern=mask_pattern, version=version, symbol_count=symbol_count
+    )
     matrix = res.matrix
     palette_arr = np.array(ColorPalette(colors).to_rgb_array(), dtype=np.uint8)
     matrix_arr = np.array(matrix, dtype=np.uint8)
