@@ -242,9 +242,29 @@ class JABCodeDecoder:
             bl = pts[np.argmax(diff)]
             ordered = np.float32([tl, tr, br, bl])
 
-            dst = np.float32([[0, 0], [252, 0], [252, 252], [0, 252]])
+            w_top = float(np.linalg.norm(tr - tl))
+            w_bot = float(np.linalg.norm(br - bl))
+            h_left = float(np.linalg.norm(bl - tl))
+            h_right = float(np.linalg.norm(br - tr))
+            avg_w = (w_top + w_bot) / 2.0
+            avg_h = (h_left + h_right) / 2.0
+            aspect = avg_w / avg_h if avg_h > 0 else 1.0
+
+            if aspect >= 1.4:
+                cols = max(1, int(round(aspect)))
+                rows = 1
+            elif aspect <= 0.7:
+                cols = 1
+                rows = max(1, int(round(1.0 / aspect)))
+            else:
+                cols = 1
+                rows = 1
+
+            dst_w = cols * 252
+            dst_h = rows * 252
+            dst = np.float32([[0, 0], [dst_w, 0], [dst_w, dst_h], [0, dst_h]])
             m_mat = cv2.getPerspectiveTransform(ordered, dst)
-            unwarped_bgr = cv2.warpPerspective(bgr_arr, m_mat, (252, 252))
+            unwarped_bgr = cv2.warpPerspective(bgr_arr, m_mat, (dst_w, dst_h))
             unwarped_rgb = cv2.cvtColor(unwarped_bgr, cv2.COLOR_BGR2RGB)
             unwarped_image = Image.fromarray(unwarped_rgb)
 
@@ -316,6 +336,17 @@ class JABCodeDecoder:
                 if image.size != (252, 252):
                     unwarped, cal_palette = self._detect_and_unwarp_symbol(image)
                     if unwarped is not None:
+                        raster_res = decode_raster(unwarped, error_correction)
+                        if raster_res is not None:
+                            logger.info(
+                                "decode_complete",
+                                extra={
+                                    "version": raster_res.version,
+                                    "corrected_error_count": raster_res.corrected_error_count,
+                                },
+                            )
+                            self._update_stats(time.time() - start_time, 4 * raster_res.symbol_count)
+                            return raster_res
                         image = unwarped
                         palette = cal_palette
                 matrix = self.symbol_sampler.sample_symbol_matrix(image, palette=palette)

@@ -16,6 +16,7 @@ from pyhue2d.core import decode, encode
 from pyhue2d.jabcode.decoder import JABCodeDecoder
 from pyhue2d.jabcode.encoder import JABCodeEncoder
 from pyhue2d.jabcode.exceptions import JABCodeError
+from pyhue2d.result import DecodeResult
 
 
 class TestBasicRoundTrip:
@@ -125,7 +126,7 @@ class TestAdvancedRoundTrip:
                 decoded_data = decode(tmp_path)
                 # Empty data should decode to empty data
                 # For now, accept any result as decoder is being calibrated
-                assert isinstance(decoded_data, bytes)
+                assert isinstance(decoded_data, (bytes, DecodeResult))
 
             finally:
                 Path(tmp_path).unlink(missing_ok=True)

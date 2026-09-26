@@ -44,9 +44,9 @@ DEFAULT_8_COLOR_PALETTE = [
 # Default 4-color palette
 DEFAULT_4_COLOR_PALETTE = [
     (0, 0, 0),  # Black
-    (0, 0, 255),  # Blue
-    (255, 0, 0),  # Red
-    (255, 255, 255),  # White
+    (255, 0, 255),  # Magenta
+    (255, 255, 0),  # Yellow
+    (0, 255, 255),  # Cyan
 ]
 
 # =============================================================================
@@ -185,43 +185,35 @@ def get_color_palette(color_count: int) -> List[Tuple[int, int, int]]:
 
 
 def _generate_color_palette(color_count: int) -> List[Tuple[int, int, int]]:
-    """Generate color palette for arbitrary color count."""
-    if color_count <= 8:
-        # For small palettes, use hand-picked high-contrast colors
-        base_colors = [
-            (0, 0, 0),  # Black
-            (255, 255, 255),  # White
-            (255, 0, 0),  # Red
-            (0, 255, 0),  # Green
-            (0, 0, 255),  # Blue
-            (255, 255, 0),  # Yellow
-            (255, 0, 255),  # Magenta
-            (0, 255, 255),  # Cyan
-        ]
-        return base_colors[:color_count]
+    """Generate color palette for arbitrary color count matching ISO/IEC 23634:2022."""
+    if color_count == 4:
+        return DEFAULT_4_COLOR_PALETTE.copy()
+    if color_count == 8:
+        return DEFAULT_8_COLOR_PALETTE.copy()
 
-    # For larger palettes, generate systematically
-    palette = []
+    counts = {
+        16: (4, 2, 2),
+        32: (4, 4, 2),
+        64: (4, 4, 4),
+        128: (8, 4, 4),
+        256: (8, 8, 4),
+    }
+    if color_count not in counts:
+        raise ValueError(f"Unsupported color count: {color_count}")
 
-    # Calculate how to distribute colors across RGB space
-    colors_per_axis = int(color_count ** (1 / 3)) + 1
-    step = 255 // (colors_per_axis - 1) if colors_per_axis > 1 else 255
+    vr, vg, vb = counts[color_count]
+    dr = 85.0 if vr - 1 == 3 else 256.0 / (vr - 1)
+    dg = 85.0 if vg - 1 == 3 else 256.0 / (vg - 1)
+    db = 85.0 if vb - 1 == 3 else 256.0 / (vb - 1)
 
-    for i in range(color_count):
-        # Distribute across RGB cube more evenly
-        r_index = i % colors_per_axis
-        g_index = (i // colors_per_axis) % colors_per_axis
-        b_index = (i // (colors_per_axis * colors_per_axis)) % colors_per_axis
-
-        r = min(255, r_index * step)
-        g = min(255, g_index * step)
-        b = min(255, b_index * step)
-
-        palette.append((r, g, b))
-
-        if len(palette) >= color_count:
-            break
-
+    palette: List[Tuple[int, int, int]] = []
+    for i in range(vr):
+        r = min(int(dr * i), 255)
+        for j in range(vg):
+            g = min(int(dg * j), 255)
+            for k in range(vb):
+                b = min(int(db * k), 255)
+                palette.append((r, g, b))
     return palette
 
 

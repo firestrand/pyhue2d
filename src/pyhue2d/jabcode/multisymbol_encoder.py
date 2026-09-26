@@ -1,6 +1,6 @@
 """Compact docking trees and payload partitioning for multi-symbol encoding."""
 
-from math import ceil, sqrt
+from math import ceil, log2, sqrt
 
 from .general_encoder import build_general_matrix, payload_bits
 from .ldpc.parameters import LDPCParameters
@@ -8,14 +8,21 @@ from .symbol_layout import reserved_coordinates
 
 
 def build_multisymbol_matrix(
-    data: str | bytes, version: int, colors: int, ecc_level: int, mask_pattern: int, symbol_count: int
+    data: str | bytes,
+    version: int,
+    colors: int,
+    ecc_level: int,
+    mask_pattern: int,
+    symbol_count: int,
+    columns: int | None = None,
 ) -> list[list[int]]:
     """Encode an ordered stream over a breadth-first compact docking tree."""
     if not 1 <= symbol_count <= 61:
         raise ValueError("Symbol count must be between 1 and 61")
     if not 1 <= version <= 32:
         raise ValueError("Symbol version must be between 1 and 32")
-    columns = ceil(sqrt(symbol_count))
+    if columns is None:
+        columns = ceil(sqrt(symbol_count))
     cells = {(index % columns, index // columns) for index in range(symbol_count)}
     order = [(0, 0)]
     seen = {(0, 0)}
@@ -34,7 +41,8 @@ def build_multisymbol_matrix(
         docks.append(children)
     dimension = 17 + 4 * version
     params = LDPCParameters.for_ecc_level(ecc_level)
-    default_mode = params.wc == 4 and params.wr == 9 and mask_pattern == 7
+    default_mode = colors == 8 and params.wc == 4 and params.wr == 9 and mask_pattern == 7
+    bits_per_mod = int(log2(colors))
     capacities: list[int] = []
     footers: list[list[int]] = []
     for index, children in enumerate(docks):
@@ -42,7 +50,7 @@ def build_multisymbol_matrix(
         footer = [0] * (2 * len(children)) + list(reversed(flags)) + [1]
         footers.append(footer)
         reserved = reserved_coordinates(version, version, colors, index == 0, default_mode)
-        capacity = ((dimension * dimension - len(reserved)) * 3 // params.wr) * (params.wr - params.wc)
+        capacity = ((dimension * dimension - len(reserved)) * bits_per_mod // params.wr) * (params.wr - params.wc)
         capacities.append(capacity - len(footer))
     bits = payload_bits(data)
     if len(bits) > sum(capacities):

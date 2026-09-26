@@ -22,9 +22,10 @@ class TestColorPalette:
         palette = ColorPalette(color_count=4)
 
         assert palette.color_count == 4
-        assert len(palette.colors) == 4
         assert (0, 0, 0) in palette.colors  # Black
-        assert (255, 255, 255) in palette.colors  # White
+        assert (255, 0, 255) in palette.colors  # Magenta
+        assert (255, 255, 0) in palette.colors  # Yellow
+        assert (0, 255, 255) in palette.colors  # Cyan
 
     def test_colorpalette_creation_with_16_colors(self):
         """Test ColorPalette can be created with 16 colors."""

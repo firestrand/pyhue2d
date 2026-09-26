@@ -44,25 +44,52 @@ def _palette_indices(matrix: list[list[int]], color_count: int) -> list[list[int
     return matrix
 
 
+def read_master_color_count(matrix: list[list[int]]) -> int:
+    """Read the master symbol color count from Metadata Part 1."""
+    height = len(matrix)
+    width = len(matrix[0]) if height else 0
+    coords = metadata_coordinates(width, height, 4)
+    colors = [matrix[y][x] for x, y in coords]
+    yellow_indices = {2, 6, 14, 30, 60}
+    cyan_indices = {3, 7, 15}
+    mapped = [6 if c in yellow_indices else (3 if c in cyan_indices else (0 if c == 0 else c)) for c in colors]
+    if mapped[0] not in (0, 3, 6):
+        return 8
+    pairs = {(0, 0): 0, (0, 3): 1, (0, 6): 2, (3, 0): 3, (3, 3): 4, (3, 6): 5, (6, 0): 6, (6, 3): 7}
+    try:
+        encoded = [pairs[(mapped[index], mapped[index + 1])] for index in (0, 2)]
+    except KeyError:
+        return 8
+    part1 = [value >> shift & 1 for value in encoded for shift in (2, 1, 0)]
+    try:
+        decoded, _ = decode_ldpc_stream(part1, 2, 0, error_correction=True)
+        return 1 << (_integer(decoded) + 1)
+    except Exception:
+        return 8
+
+
 def _master_metadata(matrix: list[list[int]], error_correction: bool) -> tuple[SymbolMetadata, bool, int]:
     height, width = len(matrix), len(matrix[0])
     coords = metadata_coordinates(width, height, 4)
     colors = [matrix[y][x] for x, y in coords]
-    if colors[0] not in (0, 3, 6):
+    yellow_indices = {2, 6, 14, 30, 60}
+    cyan_indices = {3, 7, 15}
+    mapped = [6 if c in yellow_indices else (3 if c in cyan_indices else (0 if c == 0 else c)) for c in colors]
+    if mapped[0] not in (0, 3, 6):
         return SymbolMetadata((width - 17) // 4, (height - 17) // 4, 8, 4, 9, 7), True, 0
     pairs = {(0, 0): 0, (0, 3): 1, (0, 6): 2, (3, 0): 3, (3, 3): 4, (3, 6): 5, (6, 0): 6, (6, 3): 7}
     try:
-        encoded = [pairs[(colors[index], colors[index + 1])] for index in (0, 2)]
+        encoded = [pairs[(mapped[index], mapped[index + 1])] for index in (0, 2)]
     except KeyError as error:
         raise JABCodeError("Invalid master color metadata") from error
     part1 = [value >> shift & 1 for value in encoded for shift in (2, 1, 0)]
     decoded, corrected_part1 = decode_ldpc_stream(part1, 2, 0, error_correction=error_correction)
     color_count = 1 << (_integer(decoded) + 1)
-    if color_count not in (4, 8):
+    if color_count not in (4, 8, 16, 32, 64):
         raise JABCodeError("Unsupported master color count")
     matrix = _palette_indices(matrix, color_count)
     bits_per_module = color_count.bit_length() - 1
-    start = 4 + 4 * (color_count - 2)
+    start = 4 + 4 * min(color_count - 2, 62)
     coords = metadata_coordinates(width, height, start + (38 + bits_per_module - 1) // bits_per_module)
     part2 = [matrix[y][x] >> shift & 1 for x, y in coords[start:] for shift in range(bits_per_module - 1, -1, -1)][:38]
     decoded, corrected_part2 = decode_ldpc_stream(part2, 2, 0, error_correction=error_correction)
@@ -144,7 +171,7 @@ def decode_symbol_channel(
         metadata.version_x * 4 + 17 != width
         or metadata.version_y * 4 + 17 != height
         or not 3 <= metadata.wc < metadata.wr <= 11
-        or metadata.color_count not in (4, 8)
+        or metadata.color_count not in (4, 8, 16, 32, 64)
         or not 0 <= metadata.mask_pattern <= 7
         or any(value < 0 or value >= metadata.color_count for row in matrix for value in row)
     ):

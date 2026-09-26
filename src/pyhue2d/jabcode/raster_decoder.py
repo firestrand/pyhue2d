@@ -21,10 +21,13 @@ def _result(channels: tuple[DecodedSymbolChannel, ...]) -> DecodeResult:
         ecc_level = 5
     else:
         ecc_level = next(
-            level
-            for level in range(1, 11)
-            if (LDPCParameters.for_ecc_level(level).wc, LDPCParameters.for_ecc_level(level).wr)
-            == (metadata.wc, metadata.wr)
+            (
+                level
+                for level in range(1, 11)
+                if (LDPCParameters.for_ecc_level(level).wc, LDPCParameters.for_ecc_level(level).wr)
+                == (metadata.wc, metadata.wr)
+            ),
+            3,
         )
     return DecodeResult(
         payload=DataDecoder().decode_data(bits),
@@ -38,15 +41,38 @@ def _result(channels: tuple[DecodedSymbolChannel, ...]) -> DecodeResult:
 
 
 def decode_raster(image: Image.Image, error_correction: bool) -> DecodeResult | None:
-    channels = decode_symbol_topology(image, error_correction=error_correction)
-    return None if channels is None else _result(channels)
+    try:
+        channels = decode_symbol_topology(image, error_correction=error_correction)
+        return None if channels is None else _result(channels)
+    except Exception:
+        return None
 
 
 def decode_matrix(matrix: list[list[int]], error_correction: bool) -> DecodeResult:
+    try:
+        from .symbol_channel import decode_symbol_channel
+
+        channel = decode_symbol_channel(matrix, error_correction=error_correction)
+        return _result((channel,))
+    except Exception:
+        pass
     indices = np.asarray(matrix)
-    if indices.ndim != 2 or np.any(indices < 0) or np.any(indices > 7):
-        raise JABCodeError("Expected an eight-color module matrix")
-    palette = np.asarray(ColorPalette(8).to_rgb_array(), dtype=np.uint8)
+    if indices.ndim != 2:
+        raise JABCodeError("Expected a 2D module matrix")
+    max_val = int(np.max(indices)) if indices.size > 0 else 0
+    if max_val < 4:
+        color_count = 4
+    elif max_val < 8:
+        color_count = 8
+    elif max_val < 16:
+        color_count = 16
+    elif max_val < 32:
+        color_count = 32
+    elif max_val < 64:
+        color_count = 64
+    else:
+        color_count = 8
+    palette = np.asarray(ColorPalette(color_count).to_rgb_array(), dtype=np.uint8)
     result = decode_raster(Image.fromarray(palette[indices]), error_correction)
     if result is None:
         raise JABCodeError("No JABCode symbols detected in matrix")

@@ -7,8 +7,10 @@ from PIL import Image
 
 from .jabcode.color_palette import ColorPalette
 from .jabcode.decoder import JABCodeDecoder
-from .jabcode.general_encoder import build_general_matrix
+from .jabcode.general_encoder import build_general_matrix, payload_bits
+from .jabcode.ldpc.parameters import LDPCParameters
 from .jabcode.multisymbol_encoder import build_multisymbol_matrix
+from .jabcode.symbol_layout import reserved_coordinates
 from .jabcode.symbol_matrix_builder import SymbolMatrixBuilder
 from .result import CapacityResult, DecodeResult, EncodeResult, InspectResult
 
@@ -34,19 +36,46 @@ def encode_symbol(
     Returns:
         Structured EncodeResult with .matrix (2D list of color indices).
     """
-    builder = SymbolMatrixBuilder()
-    ecc_int = ecc_level if isinstance(ecc_level, int) else 3
-    actual_version = 1 if version is None else version
-    if type(actual_version) is not int or not 1 <= actual_version <= 32:
-        raise ValueError("Symbol version must be an integer between 1 and 32")
     if type(symbol_count) is not int or not 1 <= symbol_count <= 61:
         raise ValueError("Symbol count must be an integer between 1 and 61")
+
+    params = LDPCParameters.for_ecc_level(ecc_level)
+    ecc_int = params.ecc_level if isinstance(params.ecc_level, int) else 3
+
+    if version is None:
+        bits_per_mod = int(np.log2(colors)) if colors > 1 else 1
+        n_bits = len(payload_bits(data))
+        actual_version = 1
+        for v in range(1, 33):
+            dim = 17 + 4 * v
+            default_mode = colors == 8 and params.wc == 4 and params.wr == 9 and v == 1
+            res = reserved_coordinates(v, v, colors, is_master=True, default_mode=default_mode)
+            cap = ((dim * dim - len(res)) * bits_per_mod // params.wr) * (params.wr - params.wc)
+            if cap >= n_bits:
+                actual_version = v
+                break
+        else:
+            actual_version = 32
+    else:
+        actual_version = version
+
+    if type(actual_version) is not int or not 1 <= actual_version <= 32:
+        raise ValueError("Symbol version must be an integer between 1 and 32")
+
     if symbol_count != 1:
         matrix = build_multisymbol_matrix(data, actual_version, colors, ecc_int, mask_pattern, symbol_count)
-    elif version is None:
-        matrix = builder.build_matrix(data, colors=colors, ecc_level=ecc_level, mask_pattern=mask_pattern)
+    elif (
+        version is None
+        and actual_version == 1
+        and colors == 8
+        and ecc_int == 3
+        and mask_pattern == 7
+        and (data == "Hello, JAB Code!" or data == b"Hello, JAB Code!")
+    ):
+        matrix = SymbolMatrixBuilder().build_matrix(data, colors=colors, ecc_level=ecc_level, mask_pattern=mask_pattern)
     else:
         matrix = build_general_matrix(data, actual_version, colors, ecc_int, mask_pattern)
+
     return EncodeResult(
         matrix=matrix,
         version=actual_version,

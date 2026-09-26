@@ -25,5 +25,7 @@ tests/support/test_dynamic_ldpc.py
 tests/support/log_capture.py
 tests/support/sidecar.py
 tests/support/fixture_digest.py
+tests/facts/test_color_depths.py
+tests/facts/test_camera_multisymbol.py
 tests/fixtures/approved/
 

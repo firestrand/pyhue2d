@@ -14,17 +14,36 @@ def metadata_coordinates(width: int, height: int, count: int) -> list[tuple[int,
         else:
             x = width - 1 - x
         if index % 4 == 0:
-            if index <= 20 or 44 <= index <= 68 or 96 <= index <= 124 or 156 <= index <= 172:
+            if (
+                index <= 20
+                or 44 <= index <= 68
+                or 96 <= index <= 124
+                or 156 <= index <= 188
+                or 224 <= index <= 260
+                or 300 <= index <= 340
+            ):
                 y += 1
-            else:
+            elif (
+                (20 < index < 44)
+                or (68 < index < 96)
+                or (124 < index < 156)
+                or (188 < index < 224)
+                or (260 < index < 300)
+                or (340 < index < 384)
+            ):
                 x -= 1
-            if index in (44, 96, 156):
+            if index in (44, 96, 156, 224, 300, 384):
                 x, y = y, x
     return coordinates
 
 
-def pattern_modules(version_x: int, version_y: int, is_master: bool) -> dict[tuple[int, int], int]:
-    """Return the eight-color finder and alignment pattern module colors."""
+def pattern_modules(
+    version_x: int, version_y: int, is_master: bool, color_count: int = 8
+) -> dict[tuple[int, int], int]:
+    """Return finder and alignment pattern module colors for the specified color count."""
+    black = 0
+    cyan = {4: 3, 8: 3, 16: 3, 32: 7, 64: 15}.get(color_count, 3)
+    yellow = {4: 2, 8: 6, 16: 14, 32: 30, 64: 60}.get(color_count, 6)
     modules: dict[tuple[int, int], int] = {}
     xs, ys = get_ap_positions(version_x), get_ap_positions(version_y)
     for row, y in enumerate(ys):
@@ -34,23 +53,23 @@ def pattern_modules(version_x: int, version_y: int, is_master: bool) -> dict[tup
             if corner:
                 diagonal = 1 if row == 0 else -1
             offsets = {(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1), (-1, -diagonal), (1, diagonal)}
-            color = (3 if column == 0 else 6) if corner else 6
+            color = (cyan if column == 0 else yellow) if corner else yellow
             for dx, dy in offsets:
-                modules[x + dx, y + dy] = 0 if corner and row > 0 else color
-            modules[x, y] = color if corner and row > 0 else 0
+                modules[x + dx, y + dy] = black if corner and row > 0 else color
+            modules[x, y] = color if corner and row > 0 else black
             if not corner:
                 for dx, dy in offsets:
-                    modules[x + dx, y + dy] = 3
-                modules[x, y] = 6
+                    modules[x + dx, y + dy] = cyan
+                modules[x, y] = yellow
             elif not is_master:
                 for dx, dy in offsets:
-                    modules[x + dx, y + dy] = 6
-                modules[x, y] = 3
+                    modules[x + dx, y + dy] = yellow
+                modules[x, y] = cyan
             if corner and is_master:
                 for sign in (-1, 1):
                     for offset in range(3):
-                        modules[x + sign * 2, y + sign * diagonal * offset] = color if row > 0 else 0
-                        modules[x + sign * offset, y + sign * diagonal * 2] = color if row > 0 else 0
+                        modules[x + sign * 2, y + sign * diagonal * offset] = color if row > 0 else black
+                        modules[x + sign * offset, y + sign * diagonal * 2] = color if row > 0 else black
     return modules
 
 
@@ -68,7 +87,7 @@ def reserved_coordinates(
     version_x: int, version_y: int, color_count: int, is_master: bool, default_mode: bool = False
 ) -> set[tuple[int, int]]:
     """Return finder, alignment, palette, and metadata coordinates."""
-    reserved = set(pattern_modules(version_x, version_y, is_master))
+    reserved = set(pattern_modules(version_x, version_y, is_master, color_count))
     width, height = 17 + 4 * version_x, 17 + 4 * version_y
     palette_count = min(color_count - 2, 62)
     if is_master:

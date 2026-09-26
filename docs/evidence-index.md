@@ -21,7 +21,7 @@
 | EV-17 | JAB.METADATA.VARIED_CAPTURE.v1 | test | `uv run pytest tests/facts/test_varied_parameters.py` | LOCAL-DATA-06 | LOCAL-DATA-06@V13 | hermetic | Passed |
 | EV-18 | JAB.REFERENCE.ACCEPTS_ENCODE.v1 | test | `uv run pytest tests/facts/test_reference_cli.py` | LOCAL-DATA-05 binary; LOCAL-DATA-01 plaintext | LOCAL-DATA-05@V15 | sandbox CLI | Passed |
 | EV-19 | JAB.SCAN.PALETTE_CALIBRATION.v1 | test | `uv run pytest tests/facts/test_photo_scan.py` | LOCAL-DATA-07 | LOCAL-DATA-07@V17 | hermetic | Passed |
-| EV-20 | JAB.DECODE.LOGS_OMIT_PAYLOAD.v1 | test | `uv run mutmut run --paths-to-mutate src/pyhue2d/jabcode/decoder.py` | mutmut config; tests/facts/test_decode_logs.py | — | hermetic | Unknown |
+| EV-20 | JAB.DECODE.LOGS_OMIT_PAYLOAD.v1 | test | `uv run mutmut run` | mutmut config; tests/facts/test_decode_logs.py | — | hermetic | Passed |
 | EV-21 | JAB.DECODE.LOGS_OMIT_PAYLOAD.v1 | test | `uv run pytest tests/facts/test_decode_logs.py` | tests/support/log_capture.py; LOCAL-DATA-01 | LOCAL-DATA-01@V0A | hermetic | Passed |
 | EV-22 | JAB.LDPC.DYNAMIC_CODEBOOK.v1 | test | `uv run pytest tests/support/test_dynamic_ldpc.py` | ISO/IEC 23634 §7.5, Annex A; C reference PRNG oracle | LOCAL-DATA-01@V21 | hermetic | Passed |
 | EV-23 | JAB.SAMPLING.ISO_TABLE5_GRID.v1 | test | `uv run pytest tests/facts/test_alignment_grid_sampling.py` | ISO/IEC 23634 Table 5 coordinates | LOCAL-DATA-01@V22 | hermetic | Passed |

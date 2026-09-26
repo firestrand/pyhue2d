@@ -31,9 +31,9 @@ class ColorPalette:
         else:
             if color_count is None:
                 color_count = 8  # Default
+            self._validate_color_count(color_count)
             self.color_count = color_count
             self.colors = get_color_palette(color_count)
-            self._validate_color_count(color_count)
 
     def _validate_color_count(self, color_count: int) -> None:
         """Validate color count is supported."""
