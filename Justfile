@@ -31,11 +31,12 @@ test *args:
 # Full verification recipe
 verify: check examples
     uv run python scripts/check_jabcode_fixtures.py
-    uv run pytest
+    uv run python scripts/check_docs.py
+    uv run pytest -v --cov=pyhue2d --cov-branch --cov-report=xml
 
 # Run test suite with coverage
 test-cov:
-    uv run pytest -v --cov=pyhue2d --cov-branch
+    uv run pytest -v --cov=pyhue2d --cov-branch --cov-report=xml
 
 
 # Run all examples and generate repository sample assets

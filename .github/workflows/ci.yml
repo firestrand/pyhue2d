@@ -28,6 +28,9 @@ jobs:
       - name: Ty (typing)
         run: uv run ty check
 
+      - name: Docs check
+        run: uv run python scripts/check_docs.py
+
   test:
     name: Unit-test matrix
     runs-on: ubuntu-latest
@@ -44,14 +47,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install just
+        uses: taiki-e/install-action@just
+
       - name: Install dependencies
         run: uv sync --python ${{ matrix.python-version }}
 
-      - name: Verify fixture integrity
-        run: uv run python scripts/check_jabcode_fixtures.py
+      - name: Run verification (just verify)
+        run: just verify
 
-      - name: Run tests with coverage
-        run: uv run pytest -v --cov=pyhue2d --cov-branch --cov-report=xml
+      - name: Verify working tree is clean
+        run: git diff --exit-code
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

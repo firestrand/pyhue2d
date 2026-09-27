@@ -73,9 +73,9 @@ python examples/07_frame_stream_decoding.py
 
 ### 4. [04_camera_unwarp.py](04_camera_unwarp.py)
 * **What it demonstrates:**
-  * Simulating printed barcodes photographed by handheld smartphone cameras (with perspective tilt, paper margins, and illumination gradients).
+  * Generating synthetic camera perspective homography warps with paper margins, 4-corner perspective distortion, and illumination gradients.
   * Aspect-ratio-aware quadrilateral contour detection and perspective unwarping.
-  * Decoding docked multi-symbol barcodes directly from camera frames.
+  * Decoding docked multi-symbol barcodes directly from synthetic camera frames.
 * **Outputs:**
   * `output/04_camera_horizontal_docked_3.png`
   * `output/04_camera_vertical_docked_2.png`
@@ -95,6 +95,7 @@ python examples/07_frame_stream_decoding.py
   * Resolution-independent vector graphic exports:
     * **SVG** for responsive web interfaces and digital signage.
     * **PDF** for commercial printing and document embedding.
+  * Parsing and rasterizing both SVG and PDF vector outputs and decoding them back to original payload.
 * **Outputs:**
   * `output/06_barcode.svg`
   * `output/06_barcode.pdf`
@@ -102,7 +103,9 @@ python examples/07_frame_stream_decoding.py
 ### 7. [07_frame_stream_decoding.py](07_frame_stream_decoding.py)
 * **What it demonstrates:**
   * Scanning a sequence of video frames using `FileFrameSource` and `decode_frame`.
-  * Skipping background frames and automatically decoding as soon as a barcode frame appears.
+  * Deterministic seeded noise frame generation ensuring clean git trees.
+  * Verifying expected decode failure reason (nonzero syndrome error) on background scenes.
+  * Skipping non-barcode frames and automatically decoding as soon as a barcode frame appears.
 * **Outputs:**
   * `output/07_stream_frame_1.png`
   * `output/07_stream_frame_2.png`
