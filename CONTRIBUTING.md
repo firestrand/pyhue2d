@@ -20,7 +20,7 @@ Thank you for your interest in contributing to PyHue2D! We welcome bug reports, 
 ## 🛠️ Development Setup
 1. **Clone the repository** and create a branch for your work:
    ```bash
-   git clone https://github.com/<username>/pyhue2d.git
+   git clone https://github.com/firestrand/pyhue2d.git
    cd pyhue2d
    git checkout -b my-feature
    ```
@@ -31,8 +31,9 @@ Thank you for your interest in contributing to PyHue2D! We welcome bug reports, 
 3. **Run tests and checks**:
    ```bash
    # Using just (recommended)
-   just check
-   just test
+   just check       # Static lint and type checks (ruff, ty)
+   just test        # Run pytest suite
+   just verify      # Full gate (check, examples, fixtures, docs, tests + coverage)
 
    # Or using uv directly
    uv run pytest

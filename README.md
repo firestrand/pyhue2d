@@ -8,7 +8,7 @@
 
 **PyHue2D** is a Python toolkit for generating and decoding high-density **color 2-D barcodes**. It starts with ISO/IEC 23634:2022 *JAB Code* support and is designed to explore other colorful symbologies such as color QR codes.
 
-Encode and decode eight-color JAB Code rasters in Python, including Versions 1–32 and docked groups of up to 61 symbols.
+Encode and decode 4-, 8-, 16-, 32-, and 64-color JAB Code rasters in Python, including Versions 1–32 and docked groups of up to 61 symbols.
 
 ---
 
@@ -41,6 +41,10 @@ import pyhue2d
 payload = b"Hello, colourful world!"
 img = pyhue2d.encode(payload, colors=8, ecc_level=3)
 img.save("hello_jab.png")
+
+# Export vector graphics (SVG & PDF)
+pyhue2d.export_svg(img, output_path="hello_jab.svg")
+pyhue2d.export_pdf(img, output_path="hello_jab.pdf")
 
 # Decode
 decoded = pyhue2d.decode("hello_jab.png")
@@ -94,8 +98,18 @@ Executable example scripts and generated sample assets are in [examples/](exampl
 
 Approved reference captures live under `tests/fixtures/approved/jabcode/`. The behavioral checks are in `tests/facts/`.
 
+Run full verification (linting, types, doc checks, fixtures, examples, and full test suite with coverage):
+
 ```bash
-uv run pytest tests/facts -q
+just verify
+```
+
+Or run targeted checks:
+
+```bash
+just check                        # Static lint and type checks (ruff, ty)
+just examples                     # Generate all example assets
+uv run pytest tests/facts -q      # Fact gate test suite
 uv run python scripts/check_jabcode_fixtures.py
 ```
 
@@ -107,11 +121,11 @@ The fact ledger is [docs/fact-ledger.md](docs/fact-ledger.md).
 
 * [x] JAB Code encode and decode for the approved reference captures
 * [x] Integer error-correction levels taken from those captures
-* [x] Generalized eight-color encoding and multi-symbol raster decoding
+* [x] Generalized 4-, 8-, 16-, 32-, and 64-color encoding and multi-symbol raster decoding
 * [x] Approved four-color capture decoding
 * [x] Cross-check against the official `jabcode` binary
 * [x] Approved simulated single-symbol perspective scan
-* [x] Photographed multi-symbol perspective unwarping
+* [x] Perspective unwarping for docked multi-symbol camera frames
 * [ ] HiQ and color QR symbologies
 * [ ] WebAssembly build
 

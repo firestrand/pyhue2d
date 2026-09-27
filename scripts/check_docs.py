@@ -13,9 +13,10 @@ ROOT = Path(__file__).resolve().parents[1]
 def main() -> int:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
     errors: list[str] = []
-    if "<username>" in pyproject or "<username>" in readme:
-        errors.append("placeholder <username> is still in the README or pyproject URLs")
+    if "<username>" in pyproject or "<username>" in readme or "<username>" in contributing:
+        errors.append("placeholder <username> is still in README, CONTRIBUTING, or pyproject URLs")
     if "utility_scripts" in readme:
         errors.append("README references utility_scripts, which is not in this tree")
     if "--camera" in readme:
