@@ -50,7 +50,7 @@ Each entry in the `symbols` array contains:
 
 ## Notes
 - Some fields (e.g., finder/alignment patterns) are marked as "not available" as they are not explicitly stored in a simple format in the C encoder.
-- Multi-symbol rows in `examples_manifest.json` specify `ecc-level: 3` in defaults, but the approved captures were generated with ECC level 0.
+- Multi-symbol rows in `examples_manifest.json` specify `ecc-level: 0`, accurately matching the approved captures.
 - The debug JSON is designed to be both human-readable and machine-parseable for automated test harnesses.
 
 ---

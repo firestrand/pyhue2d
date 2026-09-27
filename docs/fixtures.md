@@ -25,7 +25,7 @@ The 15 manifest entries fall into two distinct structural groups:
   - Geometry: Multi-symbol docked topologies (2 to 10 symbols) using Version 10 (57×57 modules per symbol) with ECC level 0 on all symbols.
   - Arguments: In `maximum_text.png`, `--symbol-version` lists 20 tens (`10 10 ...`) because the official writer takes separate width and height version parameters per symbol (`[10, 10]`).
   - Sidecar Data: Contains full per-symbol 57×57 `symbol_matrix` arrays. Both `encoded_data_hex` and `ecc_data_hex` are recorded as `"omitted_large_data"` and `"omitted_large_ecc"`.
-  - *Note on Manifest Defaults*: `examples_manifest.json` lists `ecc-level: 3` under `jabcode_defaults`, but these approved images were generated with ECC level 0. Regenerating from manifest defaults without `--ecc-level 0` will not reproduce these PNGs.
+  - *Manifest ECC Settings*: The manifest rows for `maximum_text.png` and `multi_block_2.png` through `multi_block_9.png` specify `ecc-level: 0`, accurately reflecting the ECC level 0 used when generating these approved multi-symbol images.
 
 #### 2. Codec-Pinning Off-Manifest Captures
 Critical oracle files not listed in `examples_manifest.json`:
@@ -46,7 +46,7 @@ Captures verifying non-default color depths and error correction levels:
 - Accompanied by their own `SHA256SUMS` and full sidecars.
 
 #### 4. Photograph Dataset (`tests/fixtures/approved/jabcode/photos/`)
-- `photo_example1.png`: Handheld camera photograph of a printed `example1` symbol on paper, exhibiting realistic perspective skew, paper margins, and illumination gradients.
+- `photo_example1.png`: OpenCV optical camera simulation of approved `example1.png` authorized on 2026-09-25 (modeling paper margin, perspective homography warp, ambient illumination gradient, and Gaussian optical PSF blur), verified by official `jabcodeReader` and `tests/facts/test_photo_scan.py`.
 - Accompanied by sidecar metadata and verified by `tests/facts/test_photo_scan.py`.
 
 ---

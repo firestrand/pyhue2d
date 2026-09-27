@@ -29,7 +29,7 @@ test *args:
     uv run pytest {{args}}
 
 # Full verification recipe
-verify: check
+verify: check examples
     uv run python scripts/check_jabcode_fixtures.py
     uv run pytest
 

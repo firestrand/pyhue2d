@@ -44,6 +44,7 @@ def main() -> None:
     print(f"   Decoded: '{dec_h.payload.decode('utf-8')}'")
     print(f"   Symbol count: {dec_h.symbol_count}, Version: {dec_h.version}\n")
     assert dec_h.payload.decode("utf-8") == payload_h
+    assert dec_h.symbol_count == 3, f"Expected 3 symbols, got {dec_h.symbol_count}"
 
     # -------------------------------------------------------------------------
     # 2. Vertical Docking (2 symbols stacked)
@@ -59,6 +60,7 @@ def main() -> None:
     print(f"   Decoded: '{dec_v.payload.decode('utf-8')}'")
     print(f"   Symbol count: {dec_v.symbol_count}, Version: {dec_v.version}\n")
     assert dec_v.payload.decode("utf-8") == payload_v
+    assert dec_v.symbol_count == 2, f"Expected 2 symbols, got {dec_v.symbol_count}"
 
     # -------------------------------------------------------------------------
     # 3. 2D Grid Docking (4 symbols in a 2x2 grid)
@@ -77,6 +79,7 @@ def main() -> None:
     print(f"   Decoded: '{dec_grid.payload.decode('utf-8')}'")
     print(f"   Symbol count: {dec_grid.symbol_count}, Version: {dec_grid.version}\n")
     assert dec_grid.payload.decode("utf-8") == payload_grid
+    assert dec_grid.symbol_count == 4, f"Expected 4 symbols, got {dec_grid.symbol_count}"
 
     print("Success: All multi-symbol docking topologies verified!")
 
