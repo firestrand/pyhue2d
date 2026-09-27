@@ -59,13 +59,13 @@ python examples/07_frame_stream_decoding.py
 
 ### 3. [03_multisymbol_docking.py](03_multisymbol_docking.py)
 * **What it demonstrates:**
-  * Grouping up to 61 docked symbols together into a single barcode with massive data capacity.
-  * Compact docking trees and parity interleaving across symbols.
+  * Docking multiple symbols together into structured topologies (demonstrated with 2, 3, and 4 symbols, supporting up to the API bound of 61 symbols).
+  * Payload partitioning across tiles according to capacity, docking tree footers indicating neighbor adjacencies, and independent per-tile LDPC encoding.
   * Three docking topologies:
     * **Horizontal docking** (3 symbols side-by-side, `columns=3`).
     * **Vertical docking** (2 symbols stacked, `columns=1`).
     * **2D grid docking** (4 symbols in a 2×2 grid).
-  * Full multi-symbol decode and payload reassembly.
+  * Full multi-symbol decode and concatenated payload reassembly.
 * **Outputs:**
   * `output/03_multisymbol_horizontal_3.png`
   * `output/03_multisymbol_vertical_2.png`

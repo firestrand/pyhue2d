@@ -13,6 +13,7 @@ SymbolInput = Union[EncodeResult, list[list[int]], Any, str, bytes]
 def _resolve_matrix(
     symbol: SymbolInput,
     palette: Sequence[Sequence[int]] | None = None,
+    module_size: int | None = None,
 ) -> list[list[int]]:
     """Resolve symbol matrix from various input types."""
     if isinstance(symbol, EncodeResult):
@@ -28,7 +29,15 @@ def _resolve_matrix(
     from .jabcode.image_processing.symbol_sampler import SymbolSampler
 
     sampler = SymbolSampler()
-    return sampler.sample_symbol_matrix(symbol, palette=list(palette) if palette else None)
+    symbol_size = (21, 21)
+    if hasattr(symbol, "width") and hasattr(symbol, "height") and module_size:
+        symbol_size = (symbol.width // module_size, symbol.height // module_size)
+    return sampler.sample_symbol_matrix(
+        symbol,
+        palette=list(palette) if palette else None,
+        symbol_size=symbol_size,
+        module_size=module_size,
+    )
 
 
 def export_svg(
@@ -48,7 +57,7 @@ def export_svg(
     Returns:
         SVG XML string.
     """
-    matrix = _resolve_matrix(symbol, palette)
+    matrix = _resolve_matrix(symbol, palette, module_size=module_size)
 
     if palette is None:
         palette = DEFAULT_8_COLOR_PALETTE
@@ -96,7 +105,7 @@ def export_pdf(
     Returns:
         PDF file content bytes.
     """
-    matrix = _resolve_matrix(symbol, palette)
+    matrix = _resolve_matrix(symbol, palette, module_size=module_size)
 
     if palette is None:
         palette = DEFAULT_8_COLOR_PALETTE

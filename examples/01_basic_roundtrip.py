@@ -7,9 +7,14 @@ This example demonstrates:
 - Inspecting barcode metadata (version, color count, ECC level, symbol count).
 """
 
+import sys
 from pathlib import Path
 
-import pyhue2d
+# Ensure src/ is on sys.path for direct execution
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR / "src"))
+
+import pyhue2d  # noqa: E402
 
 OUTPUT_DIR = Path(__file__).parent / "output"
 

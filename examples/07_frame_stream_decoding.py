@@ -2,17 +2,25 @@
 
 This example demonstrates:
 - Decoding barcodes from a stream of video frames using `FileFrameSource` and `decode_frame`.
-- Simulating a camera feed where initial frames contain non-barcode content or noise.
+- Simulating a camera feed where initial frames contain non-barcode background noise.
+- Deterministic seeded frame generation to avoid git tree diffs.
+- Verifying why non-barcode frames fail decode (nonzero LDPC syndrome error).
 - Automatic frame iteration until a valid JAB Code symbol is detected and decoded.
 """
 
+import sys
 from pathlib import Path
 
-import numpy as np
-from PIL import Image
+# Ensure src/ is on sys.path for direct execution
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR / "src"))
 
-import pyhue2d
-from pyhue2d.frame import FileFrameSource, decode_frame
+import numpy as np  # noqa: E402
+from PIL import Image  # noqa: E402
+
+import pyhue2d  # noqa: E402
+from pyhue2d.frame import FileFrameSource, decode_frame  # noqa: E402
+from pyhue2d.jabcode.exceptions import JABCodeError  # noqa: E402
 
 OUTPUT_DIR = Path(__file__).parent / "output"
 
@@ -27,11 +35,20 @@ def main() -> None:
     payload = "Real-time camera video stream barcode detection."
     print(f"Target payload: '{payload}'")
 
-    # Frame 1: Simulate a background scene / non-barcode video frame
-    print("1. Creating Frame 1 (empty scene without barcode)...")
-    noise_frame = Image.fromarray(np.random.randint(220, 256, (300, 300, 3), dtype=np.uint8))
+    # Frame 1: Deterministic seeded background scene / noise frame without barcode
+    print("1. Creating Frame 1 (seeded background noise scene without barcode)...")
+    rng = np.random.default_rng(42)
+    noise_frame = Image.fromarray(rng.integers(220, 256, (300, 300, 3), dtype=np.uint8))
     noise_frame.save(frame_empty_path)
     print(f"   Saved: {frame_empty_path.name}")
+
+    # Verify that decoding Frame 1 alone raises JABCodeError due to nonzero syndrome
+    print("   Verifying Frame 1 rejection reason on standalone decode...")
+    try:
+        pyhue2d.decode(noise_frame)
+        raise AssertionError("Frame 1 should not decode successfully!")
+    except JABCodeError as e:
+        print(f"   Correctly rejected Frame 1: {e}")
 
     # Frame 2: Video frame containing a valid barcode
     print("2. Creating Frame 2 (frame containing barcode)...")

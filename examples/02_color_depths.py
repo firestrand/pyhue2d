@@ -7,11 +7,16 @@ This example demonstrates:
 - Decoding each color depth and verifying roundtrip integrity.
 """
 
+import sys
 from math import log2
 from pathlib import Path
 
-import pyhue2d
-from pyhue2d.jabcode.color_palette import ColorPalette
+# Ensure src/ is on sys.path for direct execution
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR / "src"))
+
+import pyhue2d  # noqa: E402
+from pyhue2d.jabcode.color_palette import ColorPalette  # noqa: E402
 
 OUTPUT_DIR = Path(__file__).parent / "output"
 

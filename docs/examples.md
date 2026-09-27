@@ -66,7 +66,7 @@ assert res_64.color_count == 64
 
 ## 3. Multi-Symbol Docked Topologies
 
-When data exceeds the capacity of a single symbol, up to 61 symbols can be docked together. The primary symbol hosts primary finder patterns; docked secondary symbols share a unified error-corrected bitstream connected by docking tree footers.
+When data exceeds the capacity of a single symbol, multiple symbols can be docked together (supporting up to the API bound of 61 symbols; the examples demonstrate 2, 3, and 4 symbols). The primary symbol hosts primary finder patterns; docked secondary symbols attach via compact docking trees. The payload is split across tiles according to their available capacity, each tile appends docking tree footers indicating neighbor adjacencies, and each tile is LDPC-encoded independently. During decoding, the master symbol identifies docked neighbors, each tile is decoded and error-corrected independently, and the payload slices are reassembled in breadth-first traversal order.
 
 PyHue2D supports arbitrary docking topologies via the `symbol_count` and `columns` parameters:
 
@@ -107,7 +107,7 @@ assert res.symbol_count == 4
 
 ## 4. Camera Frame Perspective Unwarping
 
-Photographs taken with mobile cameras frequently exhibit perspective skew, rotation, paper margins, and illumination gradients. PyHue2D automatically detects quadrilateral contours, unwarps the perspective transformation, and decodes the symbol:
+Barcodes photographed by mobile cameras or scanned from paper surfaces frequently exhibit perspective skew, rotation, paper margins, and illumination gradients. PyHue2D automatically detects quadrilateral contours, unwarps perspective homographies, and decodes the symbols:
 
 ```python
 from PIL import Image

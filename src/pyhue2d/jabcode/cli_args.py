@@ -252,6 +252,7 @@ class EncodeArgs:
             "quiet_zone": self.quiet_zone,
             "module_size": self.module_size,
             "mask_pattern": self.mask_pattern,
+            "version": None if self.version == "auto" else self.version,
         }
 
 

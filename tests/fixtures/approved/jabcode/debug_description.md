@@ -37,16 +37,20 @@ Each entry in the `symbols` array contains:
 ---
 
 ## Field Usage and Comparison
-- **All fields are intended to allow step-by-step comparison between the C reference and other implementations (e.g., Python).**
-- **symbol_matrix** and **palette** allow for direct visual and algorithmic comparison of the encoded structure.
-- **encoded_data_hex** and **ecc_data_hex** enable byte-level comparison of the data assignment, encoding, and error correction process for each symbol.
+- **symbol_matrix** and **palette** allow for direct visual and algorithmic comparison of the encoded module structure.
+- **encoded_data_hex** and **ecc_data_hex**:
+  - In this repository, complete bitstrings for *both* fields are present in the seven mode captures (`mode_upper.png.json` through `mode_byte.png.json`), which provide 1160 bits of pre-ECC data and 2088 bits of LDPC codeword/parity bits. These seven files serve as the authoritative bit-level LDPC oracles.
+  - In the standard manifest captures (`example1.png.json` through `example5.png.json`, `minimum_text.png.json`), `encoded_data_hex` is present (1160 bits), but `ecc_data_hex` is recorded as `"not available"`.
+  - In large multi-symbol captures (`maximum_text.png.json`, `multi_block_2.png.json` through `multi_block_9.png.json`), both fields are recorded as `"omitted_large_data"` and `"omitted_large_ecc"`, so verification relies on `symbol_matrix` or roundtrip text decoding.
+  - In `test_block2.png.json`, the file records an official `jabcodeWriter` CLI crash (`Bus error: 10`) rather than symbol data.
 - **finder_patterns** and **alignment_patterns** (when available) help verify correct placement and coloring of key patterns.
 - **All input parameters** (color number, ECC, module size, etc.) are logged for reproducibility.
 
 ---
 
 ## Notes
-- Some fields (e.g., finder/alignment patterns) are marked as "not available" as they are not explicitly stored in a simple format in the C encoder. These can be added with further instrumentation if needed.
+- Some fields (e.g., finder/alignment patterns) are marked as "not available" as they are not explicitly stored in a simple format in the C encoder.
+- Multi-symbol rows in `examples_manifest.json` specify `ecc-level: 3` in defaults, but the approved captures were generated with ECC level 0.
 - The debug JSON is designed to be both human-readable and machine-parseable for automated test harnesses.
 
 ---

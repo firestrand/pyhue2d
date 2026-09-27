@@ -61,7 +61,7 @@ def create_enhanced_parser() -> argparse.ArgumentParser:
         epilog="""
 Examples:
   # Encode text file to JABCode
-  pyhue2d encode --input message.txt --output code.png --palette 8 --ecc-level M
+  pyhue2d encode --input message.txt --output code.png --palette 8 --ecc-level 3
 
   # Decode JABCode image
   pyhue2d decode --input code.png --output decoded.txt
@@ -113,7 +113,7 @@ Examples:
         "--ecc-level",
         "-e",
         default=3,
-        help="Error correction level (default: 3)",
+        help="Error correction level (0-10, default: 3)",
     )
     encode_parser.add_argument("--version", type=int, metavar="N", help="Symbol version (1-32, default: auto)")
     encode_parser.add_argument(
@@ -250,10 +250,6 @@ def command_encode(args: argparse.Namespace) -> int:
         )
 
         # Reject unsupported CLI options explicitly
-        if encode_args.version not in ("auto", 1):
-            raise JABCodeValidationError(
-                f"Unsupported symbol version: {encode_args.version}. Only version 1 is currently supported."
-            )
         if encode_args.mask_pattern != 7:
             raise JABCodeValidationError(
                 f"Unsupported mask pattern: {encode_args.mask_pattern}. Only mask pattern 7 is currently supported."

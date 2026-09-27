@@ -4,13 +4,45 @@ This example demonstrates:
 - Generating resolution-independent vector graphics of JAB Code barcodes.
 - Exporting to SVG (Scalable Vector Graphics) for web apps and responsive design.
 - Exporting to PDF (Portable Document Format) for precision commercial printing.
+- Verifying vector exports by rasterizing the generated SVG and decoding it back.
 """
 
+import re
+import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
-import pyhue2d
+# Ensure src/ is on sys.path for direct execution
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR / "src"))
+
+from PIL import Image  # noqa: E402
+
+import pyhue2d  # noqa: E402
 
 OUTPUT_DIR = Path(__file__).parent / "output"
+
+
+def rasterize_svg(svg_text: str) -> Image.Image:
+    """Parse SVG rectangle elements into a raster Image for decode verification."""
+    root = ET.fromstring(svg_text)
+    w = int(root.attrib["width"])
+    h = int(root.attrib["height"])
+    raster = Image.new("RGB", (w, h))
+    pixels = raster.load()
+    rgb_pattern = re.compile(r"rgb\((\d+),(\d+),(\d+)\)")
+    for elem in root.findall("{http://www.w3.org/2000/svg}rect"):
+        x = int(elem.attrib["x"])
+        y = int(elem.attrib["y"])
+        mw = int(elem.attrib["width"])
+        mh = int(elem.attrib["height"])
+        m = rgb_pattern.match(elem.attrib["fill"])
+        if m:
+            color = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+            for dy in range(mh):
+                for dx in range(mw):
+                    pixels[x + dx, y + dy] = color
+    return raster
 
 
 def main() -> None:
@@ -21,29 +53,34 @@ def main() -> None:
     print("=== PyHue2D Vector Graphics Export (SVG & PDF) ===\n")
 
     payload = "PyHue2D resolution-independent vector graphics export for print and web."
-    print(f"Payload: '{payload}'")
+    print(f"Payload: '{payload}' ({len(payload)} bytes)")
 
-    # Step 1: Encode to image (auto-selects Version 2 for this payload length)
-    print("1. Encoding barcode (auto-versioning)...")
+    # Step 1: Encode to image (auto-selects Version 2: 25x25 modules = 625 modules)
+    print("1. Encoding barcode (auto-selects Version 2, 25x25 modules)...")
     barcode_img = pyhue2d.encode(payload, colors=8, ecc_level=3)
+    assert barcode_img.size == (300, 300), f"Expected 300x300, got {barcode_img.size}"
 
-    # Step 2: Export to SVG
+    # Step 2: Export to SVG (25x25 modules * 12px = 300x300)
     print("2. Exporting to SVG...")
     svg_content = pyhue2d.export_svg(barcode_img, module_size=12, output_path=out_svg)
     print(f"   Saved: {out_svg.name} ({len(svg_content)} characters, {out_svg.stat().st_size} bytes)")
     assert svg_content.startswith("<svg"), "Invalid SVG content!"
     assert svg_content.strip().endswith("</svg>"), "SVG not closed properly!"
 
-    # Step 3: Export to PDF
+    # Step 3: Export to PDF (25x25 modules * 12pt = 300x300 pt)
     print("3. Exporting to PDF...")
     pdf_bytes = pyhue2d.export_pdf(barcode_img, module_size=12, output_path=out_pdf)
     print(f"   Saved: {out_pdf.name} ({len(pdf_bytes)} bytes)")
-    assert pdf_bytes.startswith(b"%PDF"), "Invalid PDF header!"
+    assert pdf_bytes.startswith(b"%PDF-1.4"), "Invalid PDF header!"
+    assert b"/MediaBox [0 0 300 300]" in pdf_bytes, "Incorrect PDF page dimensions!"
+    assert pdf_bytes.strip().endswith(b"%%EOF"), "PDF missing EOF trailer!"
 
-    # Step 4: Verify roundtrip decoding of rasterized representation
-    dec = pyhue2d.decode(barcode_img)
-    print(f"\nDecoded from barcode image: '{dec.payload.decode('utf-8')}'")
-    assert dec.payload.decode("utf-8") == payload
+    # Step 4: Rasterize exported SVG and verify roundtrip decoding
+    print("4. Rasterizing exported SVG and decoding back to payload...")
+    rasterized_svg = rasterize_svg(svg_content)
+    dec = pyhue2d.decode(rasterized_svg)
+    print(f"   Decoded from rasterized SVG: '{dec.payload.decode('utf-8')}'")
+    assert dec.payload.decode("utf-8") == payload, "SVG decode mismatch!"
 
     print("\nSuccess: SVG and PDF vector exports verified!")
 

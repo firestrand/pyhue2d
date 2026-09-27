@@ -59,13 +59,13 @@ def test_cli_encode_flags_default_and_module_size(tmp_path: Path):
 
 
 def test_cli_encode_rejects_unsupported_flags(tmp_path: Path):
-    """Verify that unsupported flags (--version != 1, --mask-pattern != 7, --encoding-mode) are rejected."""
+    """Verify that unsupported flags (out-of-range --version, --mask-pattern != 7, --encoding-mode) are rejected."""
     input_file = tmp_path / "in.txt"
     input_file.write_text("Hello", encoding="utf-8")
     out_file = tmp_path / "out.png"
 
-    # Unsupported version
-    code_ver = main(["encode", "--input", str(input_file), "--output", str(out_file), "--version", "2"])
+    # Out-of-range version (valid range is 1-32)
+    code_ver = main(["encode", "--input", str(input_file), "--output", str(out_file), "--version", "35"])
     assert code_ver != 0
 
     # Unsupported mask pattern
@@ -75,3 +75,20 @@ def test_cli_encode_rejects_unsupported_flags(tmp_path: Path):
     # Unsupported encoding mode
     code_mode = main(["encode", "--input", str(input_file), "--output", str(out_file), "--encoding-mode", "Byte"])
     assert code_mode != 0
+
+
+def test_cli_encode_version_flag_supported(tmp_path: Path):
+    """Verify that valid --version flag produces corresponding symbol dimensions."""
+    input_file = tmp_path / "in.txt"
+    input_file.write_text("Hello, version 4!", encoding="utf-8")
+    out_file = tmp_path / "out_v4.png"
+
+    code_ver = main(
+        ["encode", "--input", str(input_file), "--output", str(out_file), "--palette", "16", "--version", "4"]
+    )
+    assert code_ver == 0
+    assert out_file.exists()
+
+    with Image.open(out_file) as img:
+        # Version 4 side is 17 + 4*4 = 33 modules. Default module_size = 12 -> 396x396
+        assert img.size == (396, 396)

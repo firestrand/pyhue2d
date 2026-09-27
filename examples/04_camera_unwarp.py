@@ -1,21 +1,25 @@
-"""Photographed / perspective unwarping example for camera frames.
+"""Camera frame perspective unwarping example.
 
-This example demonstrates Phase V27 functionality:
-- Simulating mobile camera photographs of printed multi-symbol barcodes.
-- Applying paper margins, perspective homography distortion, and illumination gradients.
+This example demonstrates:
+- Encoding multi-symbol docked barcodes using the high-level pyhue2d.encode API.
+- Synthetically applying camera capture distortions: paper margins, 4-corner perspective
+  homography warping, and subtle illumination gradients.
 - Automatic quadrilateral contour detection and aspect-ratio-aware unwarping by PyHue2D.
-- Decoding docked topologies (horizontal and vertical) directly from distorted camera frames.
+- Decoding docked topologies (horizontal and vertical) directly from distorted frames.
 """
 
+import sys
 from pathlib import Path
 
-import cv2
-import numpy as np
-from PIL import Image
+# Ensure src/ is on sys.path for direct execution
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR / "src"))
 
-import pyhue2d
-from pyhue2d.jabcode.color_palette import ColorPalette
-from pyhue2d.jabcode.multisymbol_encoder import build_multisymbol_matrix
+import cv2  # noqa: E402
+import numpy as np  # noqa: E402
+from PIL import Image  # noqa: E402
+
+import pyhue2d  # noqa: E402
 
 OUTPUT_DIR = Path(__file__).parent / "output"
 
@@ -68,22 +72,26 @@ def warp_into_camera_frame(
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    palette_8 = np.array(ColorPalette(8).to_rgb_array(), dtype=np.uint8)
-    print("=== PyHue2D Camera Frame Perspective Unwarping (Phase V27) ===\n")
+    print("=== PyHue2D Camera Frame Perspective Unwarping ===\n")
 
     # -------------------------------------------------------------------------
-    # 1. Horizontal Multi-Symbol Camera Capture
+    # 1. Horizontal Multi-Symbol Synthetic Camera Capture
     # -------------------------------------------------------------------------
     payload_h = b"Camera 3-symbol horizontal docking barcode capture with perspective distortion."
     out_h = OUTPUT_DIR / "04_camera_horizontal_docked_3.png"
 
     print("1. Simulating 3-symbol horizontal docked camera capture...")
-    mat_h = build_multisymbol_matrix(
-        payload_h, version=1, colors=8, ecc_level=3, mask_pattern=7, symbol_count=3, columns=3
+    img_h = pyhue2d.encode(
+        payload_h,
+        version=1,
+        colors=8,
+        ecc_level=3,
+        mask_pattern=7,
+        symbol_count=3,
+        columns=3,
     )
-    img_h_rgb = np.repeat(np.repeat(palette_8[mat_h], 12, axis=0), 12, axis=1)
     photo_h = warp_into_camera_frame(
-        img_h_rgb,
+        np.array(img_h),
         homography_shifts=((8, 5), (-12, -6), (10, 15), (-5, -8)),
     )
     photo_h.save(out_h)
@@ -95,18 +103,23 @@ def main() -> None:
     assert dec_h.payload == payload_h
 
     # -------------------------------------------------------------------------
-    # 2. Vertical Multi-Symbol Camera Capture
+    # 2. Vertical Multi-Symbol Synthetic Camera Capture
     # -------------------------------------------------------------------------
     payload_v = b"Camera 2-symbol docked vertical test."
     out_v = OUTPUT_DIR / "04_camera_vertical_docked_2.png"
 
     print("2. Simulating 2-symbol vertical docked camera capture...")
-    mat_v = build_multisymbol_matrix(
-        payload_v, version=1, colors=8, ecc_level=3, mask_pattern=7, symbol_count=2, columns=1
+    img_v = pyhue2d.encode(
+        payload_v,
+        version=1,
+        colors=8,
+        ecc_level=3,
+        mask_pattern=7,
+        symbol_count=2,
+        columns=1,
     )
-    img_v_rgb = np.repeat(np.repeat(palette_8[mat_v], 12, axis=0), 12, axis=1)
     photo_v = warp_into_camera_frame(
-        img_v_rgb,
+        np.array(img_v),
         homography_shifts=((10, 6), (15, -8), (-6, 14), (-12, -10)),
     )
     photo_v.save(out_v)
