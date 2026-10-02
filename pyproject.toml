@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyhue2d"
-version = "0.4.0"
+version = "0.2.0"
 description = "Toolkit for colourful 2-D barcodes such as JAB Code"
 readme = "README.md"
 requires-python = ">=3.12"

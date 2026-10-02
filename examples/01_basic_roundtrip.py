@@ -19,9 +19,10 @@ import pyhue2d  # noqa: E402
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 
-def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    output_path = OUTPUT_DIR / "01_basic_roundtrip.png"
+def main(output_dir: Path = OUTPUT_DIR) -> None:
+    """Run the example and write its assets to the requested directory."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / "01_basic_roundtrip.png"
 
     # Step 1: Define payload
     text_payload = "Hello, colourful world! PyHue2D JAB Code."

@@ -62,23 +62,26 @@ def warp_into_camera_frame(
     warped = cv2.warpPerspective(bordered, m_mat, (canvas_w, canvas_h), borderValue=(248, 248, 248))
 
     # Add realistic illumination gradient across camera frame
-    y_grad = np.linspace(1.0, 0.95, canvas_h)[:, None, None]
-    x_grad = np.linspace(0.96, 1.0, canvas_w)[None, :, None]
-    gradient = y_grad * x_grad
-    warped_rgb = np.clip(warped.astype(np.float32) * gradient, 0, 255).astype(np.uint8)
+    # Integer ratios avoid platform-dependent rounding at intensity boundaries.
+    y_grad = 100 * (canvas_h - 1) - 5 * np.arange(canvas_h, dtype=np.uint64)
+    x_grad = 96 * (canvas_w - 1) + 4 * np.arange(canvas_w, dtype=np.uint64)
+    numerator = warped.astype(np.uint64) * y_grad[:, None, None] * x_grad[None, :, None]
+    denominator = 10000 * (canvas_h - 1) * (canvas_w - 1)
+    warped_rgb = (numerator // denominator).astype(np.uint8)
 
     return Image.fromarray(warped_rgb)
 
 
-def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def main(output_dir: Path = OUTPUT_DIR) -> None:
+    """Run the example and write its assets to the requested directory."""
+    output_dir.mkdir(parents=True, exist_ok=True)
     print("=== PyHue2D Camera Frame Perspective Unwarping ===\n")
 
     # -------------------------------------------------------------------------
     # 1. Horizontal Multi-Symbol Synthetic Camera Capture
     # -------------------------------------------------------------------------
     payload_h = b"Camera 3-symbol horizontal docking barcode capture with perspective distortion."
-    out_h = OUTPUT_DIR / "04_camera_horizontal_docked_3.png"
+    out_h = output_dir / "04_camera_horizontal_docked_3.png"
 
     print("1. Simulating 3-symbol horizontal docked camera capture...")
     img_h = pyhue2d.encode(
@@ -106,7 +109,7 @@ def main() -> None:
     # 2. Vertical Multi-Symbol Synthetic Camera Capture
     # -------------------------------------------------------------------------
     payload_v = b"Camera 2-symbol docked vertical test."
-    out_v = OUTPUT_DIR / "04_camera_vertical_docked_2.png"
+    out_v = output_dir / "04_camera_vertical_docked_2.png"
 
     print("2. Simulating 2-symbol vertical docked camera capture...")
     img_v = pyhue2d.encode(

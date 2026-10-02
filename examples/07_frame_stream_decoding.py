@@ -25,10 +25,11 @@ from pyhue2d.jabcode.exceptions import JABCodeError  # noqa: E402
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 
-def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    frame_empty_path = OUTPUT_DIR / "07_stream_frame_1.png"
-    frame_barcode_path = OUTPUT_DIR / "07_stream_frame_2.png"
+def main(output_dir: Path = OUTPUT_DIR) -> None:
+    """Run the example and write its assets to the requested directory."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    frame_empty_path = output_dir / "07_stream_frame_1.png"
+    frame_barcode_path = output_dir / "07_stream_frame_2.png"
 
     print("=== PyHue2D Multi-Frame Stream Decoding ===\n")
 

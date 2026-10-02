@@ -14,6 +14,9 @@ python examples/generate_all.py
 
 # Or using just
 just examples
+
+# Verify committed assets without overwriting them
+just examples-check
 ```
 
 You can also run any example individually:
@@ -27,6 +30,13 @@ python examples/05_binary_and_unicode.py
 python examples/06_vector_export.py
 python examples/07_frame_stream_decoding.py
 ```
+
+Verification regenerates assets in a temporary directory and compares PNG modes,
+dimensions, and exact RGBA pixels; SVG and PDF files must match byte for byte.
+PNG compression differences are ignored, but pixel changes and missing or extra
+files fail. Camera illumination uses integer ratios to avoid floating-point
+rounding differences across platforms. Run `just examples` to deliberately
+refresh assets, then review the changes.
 
 ---
 

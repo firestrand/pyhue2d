@@ -21,8 +21,9 @@ from pyhue2d.jabcode.color_palette import ColorPalette  # noqa: E402
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 
-def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def main(output_dir: Path = OUTPUT_DIR) -> None:
+    """Run the example and write its assets to the requested directory."""
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     color_depths = [4, 8, 16, 32, 64]
 
@@ -31,7 +32,7 @@ def main() -> None:
     for colors in color_depths:
         bits_per_module = int(log2(colors))
         palette = ColorPalette(colors)
-        out_file = OUTPUT_DIR / f"02_color_{colors}.png"
+        out_file = output_dir / f"02_color_{colors}.png"
 
         # Version 2 for 4-32 colors, Version 3 for 64 colors
         version = 3 if colors == 64 else 2
