@@ -1,32 +1,23 @@
 # Changelog
 
-## 0.3.0 (2026-09-25)
+## [0.2.0](https://github.com/firestrand/pyhue2d/compare/v0.1.0...v0.2.0) (2026-10-02)
+
+PyHue2D 0.2.0 adds generalized color barcode encoding/decoding, vector exports, and reproducible example verification. Requires Python 3.12 or newer.
 
 ### Features
-* Replaced stored multi-symbol payload signatures with finder detection,
-  metadata-driven docking traversal, per-symbol LDPC decoding, and bitstream assembly.
-* Added explicit `version` and `symbol_count` encoding options for eight-color
-  Versions 1–32 and groups of up to 61 symbols, including binary payloads.
-* Added `EncodeResult.symbol_count` and capacity overflow rejection for generalized encoding.
-* Strengthened dynamic Gallager LDPC verification against the C reference and corrected data-bit
-  error correction and projective sampling.
-* Added ISO/IEC 23634 Table 5 alignment pattern mesh grid sampler.
 
-## 0.2.0 (2026-09-25)
+- Encode and decode 4-, 8-, 16-, 32-, and 64-color JAB Code rasters, Versions 1–32, and docked groups of up to 61 symbols.
+- Support structured encode/decode/capacity/inspect results, binary payloads, and a CLI inspect command.
+- Export SVG and vector PDF, decode frame streams, and handle perspective-warped docked camera frames.
+- Add dynamic Gallager LDPC encoding, alignment-pattern sampling, capacity checks, and calibrated palette handling.
+- Include executable examples with payload round-trip checks and approved reference fixtures.
 
-### Features
-* Introduced structured `DecodeResult`, `EncodeResult`, `CapacityResult`, and `InspectResult` public result types.
-* Added SVG (`export_svg`) and vector PDF (`export_pdf`) export capabilities.
-* Added `FrameSource` and `decode_frame` API.
-* Added `pyhue2d inspect` CLI command.
-* Added camera perspective unwarping and in-situ finder-pattern palette calibration.
-* Verified reference CLI (`jabcodeReader` / `jabcodeWriter`) interoperability.
-* Supported varied parameters decoding (4-color palettes and ECC level 5).
-* Enforced zero-print policy in library code with Ruff T201.
+### CI and release fixes
 
-### Environment & Toolchain
-* Updated minimum runtime Python requirement to `>=3.12`.
-* Migrated toolchain to `uv`, `ruff`, and `ty`.
+- Verify PNG pixels independently of compression bytes without rewriting tracked assets; keep exact SVG/PDF comparisons and the clean-tree gate.
+- Make simulated camera illumination deterministic with integer ratios.
+- Cover pixel, palette, transparency, dimension, mode, and asset-set regressions.
+- Align package version metadata and the locked environment at 0.2.0.
 
 ## 0.1.0 (2025-06-17)
 
