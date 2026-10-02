@@ -29,7 +29,7 @@ test *args:
     uv run pytest {{args}}
 
 # Full verification recipe
-verify: check examples
+verify: check examples-check
     uv run python scripts/check_jabcode_fixtures.py
     uv run python scripts/check_docs.py
     uv run pytest -v --cov=pyhue2d --cov-branch --cov-report=xml
@@ -42,6 +42,10 @@ test-cov:
 # Run all examples and generate repository sample assets
 examples:
     uv run python examples/generate_all.py
+
+# Verify sample assets without rewriting tracked files
+examples-check:
+    uv run python examples/generate_all.py --check
 
 # Build package distributions using uv
 build:

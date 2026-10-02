@@ -81,10 +81,11 @@ def rasterize_pdf(pdf_bytes: bytes) -> Image.Image:
     return raster
 
 
-def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    out_svg = OUTPUT_DIR / "06_barcode.svg"
-    out_pdf = OUTPUT_DIR / "06_barcode.pdf"
+def main(output_dir: Path = OUTPUT_DIR) -> None:
+    """Run the example and write its assets to the requested directory."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    out_svg = output_dir / "06_barcode.svg"
+    out_pdf = output_dir / "06_barcode.pdf"
 
     print("=== PyHue2D Vector Graphics Export (SVG & PDF) ===\n")
 

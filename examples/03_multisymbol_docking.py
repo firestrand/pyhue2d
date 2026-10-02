@@ -25,8 +25,9 @@ import pyhue2d  # noqa: E402
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 
-def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def main(output_dir: Path = OUTPUT_DIR) -> None:
+    """Run the example and write its assets to the requested directory."""
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     print("=== PyHue2D Multi-Symbol Docking Topologies ===\n")
 
@@ -34,7 +35,7 @@ def main() -> None:
     # 1. Horizontal Docking (3 symbols side-by-side)
     # -------------------------------------------------------------------------
     payload_h = "Horizontal docking: 3 symbols side-by-side (columns=3) with per-tile payload partitioning."
-    out_h = OUTPUT_DIR / "03_multisymbol_horizontal_3.png"
+    out_h = output_dir / "03_multisymbol_horizontal_3.png"
     print("1. Encoding Horizontal Docked Barcode (3 symbols, columns=3)...")
     img_h = pyhue2d.encode(payload_h, version=1, symbol_count=3, columns=3, module_size=10)
     img_h.save(out_h)
@@ -50,7 +51,7 @@ def main() -> None:
     # 2. Vertical Docking (2 symbols stacked)
     # -------------------------------------------------------------------------
     payload_v = "Vertical docking: 2 symbols stacked (columns=1) traversing top to bottom."
-    out_v = OUTPUT_DIR / "03_multisymbol_vertical_2.png"
+    out_v = output_dir / "03_multisymbol_vertical_2.png"
     print("2. Encoding Vertical Docked Barcode (2 symbols, columns=1)...")
     img_v = pyhue2d.encode(payload_v, version=1, symbol_count=2, columns=1, module_size=10)
     img_v.save(out_v)
@@ -69,7 +70,7 @@ def main() -> None:
         "2D Grid docking: 4 symbols in a 2x2 grid layout providing massive contiguous capacity "
         "with breadth-first compact docking trees and independent per-tile LDPC encoding."
     )
-    out_grid = OUTPUT_DIR / "03_multisymbol_grid_4.png"
+    out_grid = output_dir / "03_multisymbol_grid_4.png"
     print("3. Encoding 2D Grid Docked Barcode (4 symbols, 2x2 grid)...")
     img_grid = pyhue2d.encode(payload_grid, version=1, symbol_count=4, module_size=10)
     img_grid.save(out_grid)

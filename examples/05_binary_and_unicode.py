@@ -19,15 +19,16 @@ import pyhue2d  # noqa: E402
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 
-def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def main(output_dir: Path = OUTPUT_DIR) -> None:
+    """Run the example and write its assets to the requested directory."""
+    output_dir.mkdir(parents=True, exist_ok=True)
     print("=== PyHue2D Unicode and Binary Payloads ===\n")
 
     # -------------------------------------------------------------------------
     # 1. Multilingual Unicode UTF-8 Text
     # -------------------------------------------------------------------------
     unicode_text = "PyHue2D: 🎨 JAB Code 2-D Barcode! 日本語 / 中文 / Español / Deutsch (Grüße) / Ελληνικά."
-    out_unicode = OUTPUT_DIR / "05_unicode_text.png"
+    out_unicode = output_dir / "05_unicode_text.png"
 
     print("1. Encoding multilingual Unicode UTF-8 string...")
     print(f"   Input: '{unicode_text}'")
@@ -45,7 +46,7 @@ def main() -> None:
     # 2. Arbitrary Binary Data (0x00 to 0xFF)
     # -------------------------------------------------------------------------
     binary_payload = bytes(range(256))
-    out_binary = OUTPUT_DIR / "05_binary_payload.png"
+    out_binary = output_dir / "05_binary_payload.png"
 
     print("2. Encoding arbitrary binary payload (256 bytes, values 0x00..0xFF)...")
     print(f"   Input length: {len(binary_payload)} bytes")
